@@ -470,9 +470,16 @@ fn load_fallback(fonts: &mut FontDefinitions, han: HanOrder) -> Vec<String> {
     keys
 }
 
+/// The Korean face a web build embeds (see `build.rs`); `None` without `CRAFT_FONTS_DIR`.
 #[cfg(target_arch = "wasm32")]
-fn load_fallback(_fonts: &mut FontDefinitions, _han: HanOrder) -> Vec<String> {
-    Vec::new()
+include!(concat!(env!("OUT_DIR"), "/korean_font.rs"));
+
+/// The browser has no system fonts: the one embedded Korean face is the fallback for Hangul.
+#[cfg(target_arch = "wasm32")]
+fn load_fallback(fonts: &mut FontDefinitions, _han: HanOrder) -> Vec<String> {
+    let Some(bytes) = KOREAN_FONT else { return Vec::new() };
+    fonts.font_data.insert("web-korean".into(), Arc::new(FontData::from_static(bytes)));
+    vec!["web-korean".into()]
 }
 
 /// Every fallback face we look for, in chain order: `(key, candidate files)`. One file per script

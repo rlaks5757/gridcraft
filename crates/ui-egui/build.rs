@@ -24,6 +24,40 @@ fn main() {
     if let Err(e) = std::fs::write(&out, generate(&json, &people)) {
         println!("cargo::warning=writing {}: {e}", out.display());
     }
+    embed_korean_font();
+}
+
+/// With `CRAFT_FONTS_DIR=<craft-fonts checkout>`, a web (wasm32) build embeds the first `Kore`
+/// face of its `fonts/manifest.txt` as `KOREAN_FONT`: the browser has no system fonts, so without
+/// it Hangul draws as boxes. Native builds read system fonts and embed nothing; unset or without a
+/// Korean face, `KOREAN_FONT` is `None`. Only reads the local checkout (no network).
+fn embed_korean_font() {
+    println!("cargo::rerun-if-env-changed=CRAFT_FONTS_DIR");
+    let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").is_ok_and(|a| a == "wasm32");
+    let found = std::env::var_os("CRAFT_FONTS_DIR").filter(|_| wasm).and_then(|dir| {
+        let dir = std::path::PathBuf::from(dir);
+        let manifest = dir.join("fonts/manifest.txt");
+        println!("cargo::rerun-if-changed={}", manifest.display());
+        let text = std::fs::read_to_string(&manifest).map_err(|e| println!("cargo::warning={}: {e}", manifest.display())).ok()?;
+        let file = text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')).find_map(|line| {
+            let f: Vec<&str> = line.split(" | ").map(str::trim).collect();
+            match f.as_slice() {
+                [_, "Regular", file, scripts, ..] if scripts.split(',').any(|s| s.trim() == "Kore") => Some(*file),
+                _ => None,
+            }
+        })?;
+        let path = dir.join(file).canonicalize().map_err(|e| println!("cargo::warning={file}: {e}")).ok()?;
+        println!("cargo::rerun-if-changed={}", path.display());
+        Some(path)
+    });
+    let src = match found {
+        Some(path) => format!("pub static KOREAN_FONT: Option<&[u8]> = Some(include_bytes!({:?}));\n", path.display().to_string()),
+        None => "pub static KOREAN_FONT: Option<&[u8]> = None;\n".to_string(),
+    };
+    let out = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("korean_font.rs");
+    if let Err(e) = std::fs::write(&out, src) {
+        println!("cargo::warning=writing {}: {e}", out.display());
+    }
 }
 
 fn read<T>(path: &std::path::Path, fallback: &str, parse: impl Fn(&str) -> Result<T, String>) -> Option<T> {
