@@ -75,3 +75,11 @@ opt-level = 3
 lto = "thin"
 codegen-units = 16
 debug = 0
+
+# Quick local web builds (ppm/build-web.sh --fast): not for release or deploy.
+[profile.web-fast]
+inherits = "release"
+lto = false
+codegen-units = 16
+incremental = true
+opt-level = 2

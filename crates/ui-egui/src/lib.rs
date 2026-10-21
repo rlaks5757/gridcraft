@@ -198,6 +198,62 @@ pub struct Services {
     pub print: Option<Box<dyn Fn(&[u8])>>,
 }
 
+impl Services {
+    /// What stays of the platform services under the PPM host lock: the clipboard services and
+    /// `download` (which the host bridge points at the parent's save, and which only a workbook
+    /// (.xlsx) may reach). File pickers, printing and opening links are gone.
+    fn lock_for_host(&mut self) {
+        self.printers = None;
+        self.print_native = None;
+        self.print = None;
+        self.pick_open = None;
+        self.pick_save = None;
+        self.pick_picture = None;
+        self.pick_picture_async = None;
+        self.open_async = None;
+        self.open_url = None;
+        if let Some(download) = self.download.take() {
+            self.download = Some(Box::new(move |name: &str, bytes: &[u8]| {
+                if name.rsplit_once('.').is_some_and(|(_, ext)| ext.eq_ignore_ascii_case("xlsx")) {
+                    download(name, bytes);
+                } else {
+                    log::warn!("the PPM host lock refused to hand {name} to the host");
+                }
+            }));
+        }
+    }
+}
+
+/// Commands run by the app itself (not the engine) that a host-locked app refuses.
+pub const UI_COMMANDS_BLOCKED: &[&str] = &["ui.printSettings", "ui.printSubmit"];
+
+/// Commands run by the app itself that a host-locked app runs. Every `run_ui_command` arm is in
+/// one of the two lists (a test reads the source to check).
+pub const UI_COMMANDS_ALLOWED: &[&str] = &[
+    "app.language.english",
+    "app.language.japanese",
+    "app.language.set",
+    "options.autoComplete",
+    "ui.backstage",
+    "ui.dialog",
+    "ui.message.dismiss",
+    "ui.notice",
+    "ui.notice.dismiss",
+    "ui.ribbonTab",
+    "view.animations",
+    "view.collapseRibbon",
+    "view.darkMode",
+    "view.interfaceScale",
+    "view.theme",
+];
+
+/// Dialogs a host-locked app does not open: they pick local files, list files, run scripts or
+/// open links. `saveAs` stays: Save reaches the host through it.
+const DIALOGS_BLOCKED: &[&str] = &["agents", "insertPicture", "macros", "open", "openLink", "saveCopy", "start"];
+
+/// Backstage pages a host-locked app shows.
+const BACKSTAGE_PAGES_LOCKED: &[backstage::Page] = &[backstage::Page::Info, backstage::Page::Options];
+
 /// Shared queue of files read asynchronously (browser file picker, drag and drop).
 pub type Inbox = std::sync::Arc<std::sync::Mutex<Vec<(String, Vec<u8>)>>>;
 
@@ -266,7 +322,11 @@ pub struct SheetApp {
 }
 
 impl SheetApp {
-    pub fn new(session: Session, services: Services) -> SheetApp {
+    pub fn new(session: Session, mut services: Services) -> SheetApp {
+        let locked = session.host_locked();
+        if locked {
+            services.lock_for_host();
+        }
         SheetApp {
             session,
             ui: UiState::default(),
@@ -284,6 +344,7 @@ impl SheetApp {
             synthetic: Default::default(),
             control_rx: None,
             grid: grid::GridState {
+                autosave: false,
                 last_border: "bottom".into(),
                 last_fill: "#FFFF00".into(),
                 last_font_color: "#C00000".into(),
@@ -307,6 +368,17 @@ impl SheetApp {
             cut_text: None,
             started: now_ms(),
         }
+    }
+
+    /// The PPM host owns the files: see `gridcraft_engine::hostlock`.
+    pub fn host_locked(&self) -> bool {
+        self.session.host_locked()
+    }
+
+    /// Whether the command `id` may run from a menu, button or shortcut. Always true outside
+    /// the host lock.
+    pub fn allowed(&self, id: &str) -> bool {
+        !self.host_locked() || UI_COMMANDS_ALLOWED.contains(&id) || gridcraft_engine::hostlock::permits(id, &json!({}))
     }
 
     /// One-time context setup: start cataloging the machine's fonts, then install the fonts and
@@ -377,7 +449,12 @@ impl SheetApp {
         {
             self.commit_text_box_edit()?;
         }
-        if let Some(r) = self.run_ui_command(id, &params) {
+        if self.host_locked() && UI_COMMANDS_BLOCKED.contains(&id) {
+            return Err(gridcraft_engine::EngineError::HostLocked(id.to_string()).to_string());
+        }
+        if (!self.host_locked() || UI_COMMANDS_ALLOWED.contains(&id))
+            && let Some(r) = self.run_ui_command(id, &params)
+        {
             return r;
         }
         let r = self.session.run(id, params);
@@ -535,6 +612,10 @@ impl SheetApp {
 
     /// Shows a command error: a toast for an unavailable command, else a message box.
     fn alert(&mut self, e: String) {
+        // The host lock refuses quietly: the item is not in the menus either.
+        if e.contains(gridcraft_engine::hostlock::BLOCKED_TEXT) {
+            return;
+        }
         if e.contains("is not available right now") {
             self.toast = Some((e, now_ms()));
         } else {
@@ -713,6 +794,9 @@ impl SheetApp {
             self.message = Some(("Text Box".into(), clean_error(&e)));
             return;
         }
+        if self.host_locked() && DIALOGS_BLOCKED.contains(&name) {
+            return;
+        }
         match name {
             "open" => {
                 if let Some(start) = &self.services.open_async {
@@ -752,6 +836,7 @@ impl SheetApp {
     /// Opens the File tab's Backstage view on `page`, committing a cell still being edited first
     /// (File actions work on the whole workbook). A draft that can't be committed keeps the sheet.
     pub fn open_backstage(&mut self, page: backstage::Page) {
+        let page = if self.host_locked() && !BACKSTAGE_PAGES_LOCKED.contains(&page) { backstage::Page::Info } else { page };
         if !self.commit_edit(0, 0, false, false) {
             return;
         }
@@ -1147,6 +1232,7 @@ impl SheetApp {
         self.perf.last = now;
         // AutoSave: save workbooks that have a file shortly after they change.
         if self.grid.autosave
+            && !self.host_locked()
             && self.editor.is_none()
             && self.text_box_editor.is_none()
             && now - self.grid.last_autosave > 2000.0

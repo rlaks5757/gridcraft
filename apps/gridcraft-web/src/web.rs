@@ -28,6 +28,14 @@ pub fn start() {
         // `?host=parent`: a same-origin page framing GridCraft (such as a Nextcloud app) opens
         // workbooks in it and stores what it saves (`host`).
         let bridge = if query_param("host").as_deref() == Some("parent") { crate::host::Bridge::new() } else { None };
+        // The PPM build runs only inside the PPM page: opened any other way it opens nothing.
+        let host_param = query_param("host");
+        if crate::gate::decide(gridcraft_engine::hostlock::HOST_BUILD, host_param.as_deref(), bridge.is_some()) == crate::gate::Start::OpenFromPpm {
+            if let Some(el) = document.get_element_by_id(LOADING_ID) {
+                el.set_inner_html(crate::gate::OPEN_FROM_PPM);
+            }
+            return;
+        }
         let app_bridge = bridge.clone();
         let result = eframe::WebRunner::new()
             .start(
@@ -98,6 +106,8 @@ struct WebShell {
 impl eframe::App for WebShell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let dropped = ctx.input_mut(|i| std::mem::take(&mut i.raw.dropped_files));
+        // Host lock: the host sends the files; dropped ones are ignored.
+        let dropped = if self.app.host_locked() { Vec::new() } else { dropped };
         for f in dropped {
             let inbox = self.inbox.clone();
             let ctx = ctx.clone();

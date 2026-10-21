@@ -166,24 +166,28 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                 out.close = true;
             }
             ui.add_space(10.0);
-            for page in [Page::Home, Page::New, Page::Open] {
+            // Host lock: the host owns the files, so no Home/New/Open, Save As, Print or Export.
+            let locked = app.host_locked();
+            for page in [Page::Home, Page::New, Page::Open].into_iter().filter(|_| !locked) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
                     out.page = Some(page);
                 }
             }
-            nav_separator(ui, nav_text);
+            if !locked {
+                nav_separator(ui, nav_text);
+            }
             if nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
                 out.page = Some(Page::Info);
             }
             if nav_item(ui, Icon::Save, lang.tr("Save"), false, nav_text, nav_sel).clicked() {
                 save(app, &mut out);
             }
-            for page in [Page::SaveAs, Page::Print, Page::Export] {
+            for page in [Page::SaveAs, Page::Print, Page::Export].into_iter().filter(|_| !locked) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
                     out.page = Some(page);
                 }
             }
-            if nav_item(ui, Icon::Close, lang.tr("Close"), false, nav_text, nav_sel).clicked() {
+            if app.allowed("file.close") && nav_item(ui, Icon::Close, lang.tr("Close"), false, nav_text, nav_sel).clicked() {
                 // A cell still being edited is part of the workbook; Close keeps the unsaved prompt.
                 if app.commit_edit(0, 0, false, false) {
                     app.run_or_alert("file.close", json!({}));
@@ -240,7 +244,8 @@ fn save(app: &mut SheetApp, out: &mut Outcome) {
     if !app.commit_edit(0, 0, false, false) {
         return;
     }
-    if app.session.active().is_some_and(|d| d.path.is_some()) {
+    // Under the host lock Save always goes to the host (through `file.save`'s save request).
+    if app.host_locked() || app.session.active().is_some_and(|d| d.path.is_some()) {
         app.run_or_alert("file.save", json!({}));
         out.close = true;
     } else {
@@ -968,10 +973,12 @@ fn options(app: &mut SheetApp, ui: &mut Ui) {
         app.run_or_alert("options.autoComplete", json!({"on": autocomplete}));
     }
     ui.add_space(18.0);
-    section(ui, lang, "Options|Save");
-    let mut autosave = app.grid.autosave();
-    if ui.checkbox(&mut autosave, lang.tr("Save .xlsx workbooks automatically after every change")).changed() {
-        app.grid.toggle_autosave();
+    if !app.host_locked() {
+        section(ui, lang, "Options|Save");
+        let mut autosave = app.grid.autosave();
+        if ui.checkbox(&mut autosave, lang.tr("Save .xlsx workbooks automatically after every change")).changed() {
+            app.grid.toggle_autosave();
+        }
     }
     let Some(calc) = app.session.active().map(|d| d.wb.calc.clone()) else { return };
     ui.add_space(18.0);

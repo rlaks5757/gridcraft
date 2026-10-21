@@ -13,6 +13,10 @@ workspace = true
 name = "gridcraft-web"
 path = "src/main.rs"
 
+[features]
+# PPM build (ppm/build-web.sh): host mode only, with no way to open or save files locally.
+ppm-host = ["gridcraft-engine/ppm-host"]
+
 [dependencies]
 gridcraft-engine = { workspace = true }
 gridcraft-ui-egui = { workspace = true }

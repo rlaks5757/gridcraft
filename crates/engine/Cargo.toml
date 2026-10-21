@@ -27,3 +27,7 @@ image = { workspace = true }
 [dev-dependencies]
 gridcraft-xlsx = { workspace = true, features = ["test-support"] }
 zip = { workspace = true }
+
+[features]
+# PPM build (ppm/build-web.sh): every session is host-locked (see src/hostlock.rs).
+ppm-host = []
