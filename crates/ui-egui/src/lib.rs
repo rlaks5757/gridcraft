@@ -177,6 +177,9 @@ pub struct Services {
     /// Browser picture picker. Each dialog owns its inbox, so canceled picks cannot
     /// insert into a subsequent dialog or open the image as a workbook.
     pub pick_picture_async: Option<Box<dyn Fn(Inbox)>>,
+    /// Starts a browser file dialog for data (CSV, TSV, JSON) and pushes the chosen file to the
+    /// inbox. Get Data in the host-locked app uses it to fill a sheet of the open workbook.
+    pub pick_data_async: Option<Box<dyn Fn(Inbox)>>,
     pub open_url: Option<Box<dyn Fn(&str)>>,
     /// Publish HTML and its plain-text alternative together. `Ok` means the host owns the
     /// write (including any asynchronous fallback); an immediate error uses egui's text path.
@@ -259,19 +262,17 @@ fn download_permitted(policy: &Policy, name: &str) -> bool {
 /// on `file.print`, whose switch they follow.
 pub const UI_COMMANDS_OFF: &[&str] = &["ui.printSettings", "ui.printSubmit"];
 
-/// Commands run by the app itself that a host-locked app runs. Every `run_ui_command` arm is in
-/// one of the two lists (a test reads the source to check).
+/// The app's own plumbing (open a page or dialog, dismiss a message, switch the ribbon tab): always
+/// on, and not a command the administrator can switch, so `commands.json` leaves them out.
+pub const UI_COMMANDS_PLUMBING: &[&str] = &["ui.backstage", "ui.dialog", "ui.message.dismiss", "ui.notice", "ui.notice.dismiss", "ui.ribbonTab"];
+
+/// Commands run by the app itself that a host-locked app runs and the administrator may switch
+/// off. Every `run_ui_command` arm is in one of the three lists (a test reads the source to check).
 pub const UI_COMMANDS_ALLOWED: &[&str] = &[
     "app.language.english",
     "app.language.japanese",
     "app.language.set",
     "options.autoComplete",
-    "ui.backstage",
-    "ui.dialog",
-    "ui.message.dismiss",
-    "ui.notice",
-    "ui.notice.dismiss",
-    "ui.ribbonTab",
     "view.animations",
     "view.collapseRibbon",
     "view.darkMode",
@@ -283,8 +284,27 @@ pub const UI_COMMANDS_ALLOWED: &[&str] = &[
 /// `saveAs` stays: Save reaches the host through it.
 const DIALOGS_LOCKED: &[&str] = &["agents", "macros", "open", "start"];
 
-/// Dialogs that open once their command is on: `(dialog, command)`.
-const DIALOGS_GATED: &[(&str, &str)] = &[("openLink", "link.open"), ("saveCopy", "file.saveAs")];
+/// The command whose switch decides whether the host-locked app opens the dialog `name` (`None`:
+/// always). `saveCopy` is every export and Save As in one dialog: its format picks the switch.
+fn dialog_switch(name: &str, params: &Json) -> Option<&'static str> {
+    match name {
+        "openLink" => Some("link.open"),
+        "importData" => Some("data.getData"),
+        "saveCopy" => Some(format_switch(params.get("format").and_then(Json::as_str).unwrap_or("xlsx"))),
+        _ => None,
+    }
+}
+
+/// The command that decides whether the host-locked app writes a copy as `format` (a file
+/// extension): each export for its own format, Save As for the rest.
+pub fn format_switch(format: &str) -> &'static str {
+    match format.to_ascii_lowercase().as_str() {
+        "csv" | "tsv" => "file.exportCsv",
+        "html" => "file.exportHtml",
+        "pdf" => "file.exportPdf",
+        _ => "file.saveAs",
+    }
+}
 
 /// Shared queue of files read asynchronously (browser file picker, drag and drop).
 pub type Inbox = std::sync::Arc<std::sync::Mutex<Vec<(String, Vec<u8>)>>>;
@@ -412,6 +432,11 @@ impl SheetApp {
         host_lock::enabled(self.session.host_policy().as_ref(), id)
     }
 
+    /// Is `id` a command of the host-locked app that is off now (so its control is shown dimmed)?
+    pub fn switched_off(&self, id: &str) -> bool {
+        self.host_locked() && host_lock::grade(id).is_some() && !self.allowed(id)
+    }
+
     /// May the File tab show `page`? Info and Options stay; Home, New and Open are the start
     /// screens; Save As, Print and Export need their commands.
     pub fn page_allowed(&self, page: backstage::Page) -> bool {
@@ -493,7 +518,8 @@ impl SheetApp {
         {
             self.commit_text_box_edit()?;
         }
-        if UI_COMMANDS_OFF.contains(&id) && !self.allowed(id) {
+        // A switched-off app command is refused like a locked engine command: without a word.
+        if (UI_COMMANDS_OFF.contains(&id) || UI_COMMANDS_ALLOWED.contains(&id)) && !self.allowed(id) {
             return Err(gridcraft_engine::EngineError::HostLocked(id.to_string()).to_string());
         }
         if self.allowed(id)
@@ -838,7 +864,7 @@ impl SheetApp {
             self.message = Some(("Text Box".into(), clean_error(&e)));
             return;
         }
-        if self.host_locked() && (DIALOGS_LOCKED.contains(&name) || DIALOGS_GATED.iter().any(|(d, c)| *d == name && !self.allowed(c))) {
+        if self.host_locked() && (DIALOGS_LOCKED.contains(&name) || dialog_switch(name, &params).is_some_and(|c| !self.allowed(c))) {
             return;
         }
         match name {
@@ -1219,6 +1245,27 @@ impl SheetApp {
         }
     }
 
+    /// Hyperlinks egui draws (About ▸ Contributors, anywhere else) open through the host's
+    /// `open_url`: the native shell has no browser of its own, and the host-locked app's switch for
+    /// links sits on it. Runs every frame, not only while a dialog is open.
+    fn forward_urls(&mut self, ctx: &egui::Context) {
+        let Some(open_url) = &self.services.open_url else { return };
+        let urls: Vec<String> = ctx.output_mut(|o| {
+            let mut urls = vec![];
+            o.commands.retain(|c| match c {
+                egui::OutputCommand::OpenUrl(u) => {
+                    urls.push(u.url.clone());
+                    false
+                }
+                _ => true,
+            });
+            urls
+        });
+        for u in urls {
+            open_url(&u);
+        }
+    }
+
     /// Lays out the whole window.
     pub fn ui(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
@@ -1258,6 +1305,7 @@ impl SheetApp {
             });
         }
         dialogs::show(self, &ctx);
+        self.forward_urls(&ctx);
         widgets::message_box(self, &ctx);
         widgets::toast(self, &ctx);
         control::issue_screenshots(self, &ctx);

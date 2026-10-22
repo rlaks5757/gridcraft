@@ -54,6 +54,10 @@ impl Bridge {
             return None;
         }
         let origin = window.location().origin().ok()?;
+        // A parent on another origin refuses to tell its origin: it is no PPM page.
+        if !crate::gate::same_origin(parent.location().origin().ok().as_deref(), &origin) {
+            return None;
+        }
         Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default(), policy: Rc::default() })
     }
 
@@ -164,22 +168,13 @@ fn message(fields: &[(&str, JsValue)]) -> Option<js_sys::Object> {
     Some(m)
 }
 
-/// `policy.overrides` as `(command id, on)` pairs; anything else (no policy, not an object,
-/// values that are no boolean) is left out.
+/// `policy.overrides` as `(command id, on)` pairs (see [`crate::gate::policy_overrides`]).
 fn policy_overrides(data: &JsValue) -> Vec<(String, bool)> {
-    let overrides = js_sys::Reflect::get(data, &JsValue::from_str("policy"))
-        .and_then(|p| js_sys::Reflect::get(&p, &JsValue::from_str("overrides")))
-        .unwrap_or(JsValue::UNDEFINED);
-    if !overrides.is_object() || js_sys::Array::is_array(&overrides) {
-        return Vec::new();
-    }
-    js_sys::Object::entries(&js_sys::Object::from(overrides))
-        .iter()
-        .filter_map(|entry| {
-            let pair = js_sys::Array::from(&entry);
-            Some((pair.get(0).as_string()?, pair.get(1).as_bool()?))
-        })
-        .collect()
+    let text = js_sys::Reflect::get(data, &JsValue::from_str("policy"))
+        .ok()
+        .and_then(|policy| js_sys::JSON::stringify(&policy).ok())
+        .and_then(|text| text.as_string());
+    text.map(|text| crate::gate::policy_overrides(&text)).unwrap_or_default()
 }
 
 fn string(data: &JsValue, key: &str) -> Option<String> {

@@ -15,10 +15,11 @@
         "builder": "on"
       },
       "id": "app.language.english",
-      "label": "app.language.english",
+      "label": "Interface Language: English",
       "labelKo": null,
       "location": [
-        "App"
+        "File",
+        "Options"
       ]
     },
     {
@@ -26,10 +27,11 @@
         "builder": "on"
       },
       "id": "app.language.japanese",
-      "label": "app.language.japanese",
+      "label": "Interface Language: Japanese",
       "labelKo": null,
       "location": [
-        "App"
+        "File",
+        "Options"
       ]
     },
     {
@@ -37,10 +39,11 @@
         "builder": "on"
       },
       "id": "app.language.set",
-      "label": "app.language.set",
+      "label": "Interface Language",
       "labelKo": null,
       "location": [
-        "App"
+        "File",
+        "Options"
       ]
     },
     {
@@ -469,7 +472,7 @@
     },
     {
       "grades": {
-        "builder": "locked"
+        "builder": "on"
       },
       "id": "data.fromTextCsv",
       "label": "From Text/CSV",
@@ -481,7 +484,7 @@
     },
     {
       "grades": {
-        "builder": "locked"
+        "builder": "on"
       },
       "id": "data.getData",
       "label": "Get Data",
@@ -2630,9 +2633,10 @@
         "builder": "on"
       },
       "id": "options.autoComplete",
-      "label": "options.autoComplete",
-      "labelKo": null,
+      "label": "Enable AutoComplete for cell values",
+      "labelKo": "셀 값에 자동 완성 사용",
       "location": [
+        "File",
         "Options"
       ]
     },
@@ -3695,77 +3699,12 @@
       "grades": {
         "builder": "on"
       },
-      "id": "ui.backstage",
-      "label": "ui.backstage",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
-      "id": "ui.dialog",
-      "label": "ui.dialog",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
-      "id": "ui.message.dismiss",
-      "label": "ui.message.dismiss",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
-      "id": "ui.notice",
-      "label": "ui.notice",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
-      "id": "ui.notice.dismiss",
-      "label": "ui.notice.dismiss",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
-      "id": "ui.ribbonTab",
-      "label": "ui.ribbonTab",
-      "labelKo": null,
-      "location": [
-        "Ui"
-      ]
-    },
-    {
-      "grades": {
-        "builder": "on"
-      },
       "id": "view.animations",
-      "label": "view.animations",
-      "labelKo": null,
+      "label": "Animations",
+      "labelKo": "애니메이션",
       "location": [
-        "View"
+        "File",
+        "Options"
       ]
     },
     {
@@ -3785,11 +3724,9 @@
         "builder": "on"
       },
       "id": "view.collapseRibbon",
-      "label": "view.collapseRibbon",
+      "label": "Collapse Ribbon",
       "labelKo": null,
-      "location": [
-        "View"
-      ]
+      "location": []
     },
     {
       "grades": {
@@ -3808,11 +3745,9 @@
         "builder": "on"
       },
       "id": "view.darkMode",
-      "label": "view.darkMode",
-      "labelKo": null,
-      "location": [
-        "View"
-      ]
+      "label": "Dark Mode",
+      "labelKo": "다크 모드",
+      "location": []
     },
     {
       "grades": {
@@ -3906,10 +3841,11 @@
         "builder": "on"
       },
       "id": "view.interfaceScale",
-      "label": "view.interfaceScale",
+      "label": "Interface Size",
       "labelKo": null,
       "location": [
-        "View"
+        "File",
+        "Options"
       ]
     },
     {
@@ -4034,10 +3970,11 @@
         "builder": "on"
       },
       "id": "view.theme",
-      "label": "view.theme",
+      "label": "Display Theme",
       "labelKo": null,
       "location": [
-        "View"
+        "File",
+        "Options"
       ]
     },
     {

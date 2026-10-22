@@ -662,12 +662,20 @@ fn save_as(app: &mut SheetApp, ui: &mut Ui, bs: &mut Backstage, out: &mut Outcom
     let lang = app.ui.language;
     dim(ui, lang.tr("Save the workbook under another name or in another folder."));
     ui.add_space(14.0);
+    // Host lock: a type whose export is off is not offered (the workbook itself always is).
+    let offered = |app: &SheetApp, ext: &str| ext == "xlsx" || app.allowed(crate::format_switch(ext));
+    if !offered(app, bs.save_format) {
+        bs.save_format = "xlsx";
+    }
     let fmt = bs.save_format;
     let current = SAVE_TYPES.iter().find(|(ext, _)| *ext == fmt).map_or("Excel Workbook (*.xlsx)", |(_, label)| *label);
     ui.horizontal(|ui| {
         ui.label(lang.tr("Save as type"));
         egui::ComboBox::from_id_salt("backstage_save_type").width(280.0).selected_text(lang.tr(current)).show_ui(ui, |ui| {
             for (ext, label) in SAVE_TYPES {
+                if !offered(app, ext) {
+                    continue;
+                }
                 if ui.selectable_label(fmt == ext, lang.tr(label)).clicked() {
                     bs.save_format = ext;
                 }
@@ -856,7 +864,8 @@ fn paint_page(p: &egui::Painter, rect: Rect, paper_w: f32, page: &Json, wb: &gri
 
 fn export(app: &mut SheetApp, ui: &mut Ui, out: &mut Outcome) {
     let lang = app.ui.language;
-    if action_row(ui, Icon::Paper, lang.tr("Create PDF"), lang.tr("Save the sheet as a PDF document that keeps its page layout.")).clicked()
+    if app.allowed("file.exportPdf")
+        && action_row(ui, Icon::Paper, lang.tr("Create PDF"), lang.tr("Save the sheet as a PDF document that keeps its page layout.")).clicked()
         && export_as(app, "pdf")
     {
         out.close = true;
@@ -867,6 +876,9 @@ fn export(app: &mut SheetApp, ui: &mut Ui, out: &mut Outcome) {
         ("csv", Icon::TextColumns, "CSV (Comma delimited)", "Save the active sheet as comma-separated text."),
         ("html", Icon::Link, "Web Page (.html)", "Save the workbook as a web page."),
     ] {
+        if !app.allowed(crate::format_switch(fmt)) {
+            continue;
+        }
         if action_row(ui, icon, lang.tr(title), lang.tr(detail)).clicked() && export_as(app, fmt) {
             out.close = true;
         }

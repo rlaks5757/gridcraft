@@ -860,7 +860,9 @@ fn from_csv(s: &mut Session, p: &Json) -> Result<Json> {
     } else if let Some(path) = str_param(p, "path") {
         crate::io::read_file(path)?
     } else {
-        s.ui_requests.push(crate::UiRequest::Dialog("open".into(), json!({})));
+        // A host-locked app picks the data in its own dialog: the open dialog would swap the workbook.
+        let dialog = if s.host_locked() { "importData" } else { "open" };
+        s.ui_requests.push(crate::UiRequest::Dialog(dialog.into(), json!({})));
         return ok();
     };
     let text = String::from_utf8_lossy(&bytes);

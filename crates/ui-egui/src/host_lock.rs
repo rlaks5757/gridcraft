@@ -10,7 +10,7 @@ use gridcraft_engine::hostlock::{Grade, Policy};
 pub fn grade(id: &str) -> Option<Grade> {
     if crate::UI_COMMANDS_OFF.contains(&id) {
         Some(Grade::Off)
-    } else if crate::UI_COMMANDS_ALLOWED.contains(&id) {
+    } else if crate::UI_COMMANDS_ALLOWED.contains(&id) || crate::UI_COMMANDS_PLUMBING.contains(&id) {
         Some(Grade::On)
     } else {
         gridcraft_engine::hostlock::grade(id)
@@ -33,6 +33,19 @@ pub fn enabled(policy: Option<&Policy>, id: &str) -> bool {
     }
 }
 
+/// The app commands the administrator can switch: `(id, label, menu location)`.
+const APP_COMMANDS: &[(&str, &str, &[&str])] = &[
+    ("app.language.english", "Interface Language: English", &["File", "Options"]),
+    ("app.language.japanese", "Interface Language: Japanese", &["File", "Options"]),
+    ("app.language.set", "Interface Language", &["File", "Options"]),
+    ("options.autoComplete", "Enable AutoComplete for cell values", &["File", "Options"]),
+    ("view.animations", "Animations", &["File", "Options"]),
+    ("view.collapseRibbon", "Collapse Ribbon", &[]),
+    ("view.darkMode", "Dark Mode", &[]),
+    ("view.interfaceScale", "Interface Size", &["File", "Options"]),
+    ("view.theme", "Display Theme", &["File", "Options"]),
+];
+
 /// The command list (`ppm/commands.json`, copied to `dist/web` by `ppm/build-web.sh`):
 /// `{ app, schema, commands }` with `{ id, label, labelKo, location, grades }` for every command,
 /// by id. `labelKo` is null where the app has no Korean text for the label.
@@ -54,14 +67,11 @@ pub fn commands_json() -> String {
     for c in gridcraft_engine::cmd::command_specs() {
         rows.push((c.id.to_string(), entry(c.id, c.label, c.menu, grade(c.id))));
     }
-    // An app command is listed under the tab or menu its id starts with (`view.theme` → View).
-    // (The print dialog's commands follow `file.print` and are not listed.)
-    for id in crate::UI_COMMANDS_ALLOWED {
-        if rows.iter().all(|r| r.0 != *id) {
-            let head = id.split('.').next().unwrap_or(id);
-            let area = head[..1].to_uppercase() + &head[1..];
-            rows.push((id.to_string(), entry(id, id, &[area.as_str()], grade(id))));
-        }
+    // The commands the app runs itself, where the user finds them (File ▸ Options; `[]`: a
+    // title-bar switch or a shortcut only). The print dialog's commands follow `file.print` and
+    // the plumbing is no switch, so neither is listed.
+    for (id, label, location) in APP_COMMANDS {
+        rows.push((id.to_string(), entry(id, label, location, grade(id))));
     }
     rows.sort_by(|a, b| a.0.cmp(&b.0));
     let list: Vec<serde_json::Value> = rows.into_iter().map(|r| r.1).collect();
@@ -93,5 +103,11 @@ mod tests {
             assert!(list.windows(2).all(|w| w[0] < w[1]), "keep the lists sorted and free of duplicates");
         }
         assert!(crate::UI_COMMANDS_OFF.iter().all(|id| !crate::UI_COMMANDS_ALLOWED.contains(id)));
+        for list in [crate::UI_COMMANDS_PLUMBING, crate::UI_COMMANDS_ALLOWED] {
+            assert!(list.windows(2).all(|w| w[0] < w[1]));
+        }
+        assert!(crate::UI_COMMANDS_PLUMBING.iter().all(|id| !crate::UI_COMMANDS_ALLOWED.contains(id) && !crate::UI_COMMANDS_OFF.contains(id)));
+        let listed: Vec<&str> = APP_COMMANDS.iter().map(|c| c.0).collect();
+        assert_eq!(listed, crate::UI_COMMANDS_ALLOWED, "every switchable app command has a row, in order");
     }
 }

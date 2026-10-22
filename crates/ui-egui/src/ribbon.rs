@@ -343,6 +343,12 @@ fn keytip(app: &SheetApp, ui: &Ui, sequence: &str, at: egui::Pos2) {
 
 /// Paint the badge for a control that runs command `id`, when the armed prefix matches.
 fn control_keytip(app: &SheetApp, ui: &Ui, response: &egui::Response, id: &str) {
+    // Host lock: a control the administrator switched off stays drawn, washed out; a click on it
+    // is refused without a word by the engine.
+    if app.switched_off(id) {
+        let t = Tokens::get(ui.ctx());
+        ui.painter().rect_filled(response.rect, 3.0, t.ribbon.gamma_multiply(0.7));
+    }
     if let Some(sequence) = keytip_table::control_badge(app.keytips.prefix().unwrap_or_default(), id) {
         keytip(app, ui, sequence, response.rect.center_bottom());
     }
@@ -1898,12 +1904,12 @@ fn formulas(app: &mut SheetApp, ui: &mut Ui) {
 }
 
 fn data(app: &mut SheetApp, ui: &mut Ui) {
-    // Host lock: no importing local files.
+    // Host lock: the data goes into this workbook (its own picker); the Open dialog is shut.
     if app.allowed("data.getData") {
         let gd = big_button(ui, Icon::Folder, "Get Data\n(Text/CSV)", "Import a text or CSV file", false);
         control_keytip(app, ui, &gd, "data.getData");
         if gd.clicked() {
-            app.open_dialog("open", json!({}));
+            app.open_dialog(if app.host_locked() { "importData" } else { "open" }, json!({}));
         }
         sep(ui);
     }

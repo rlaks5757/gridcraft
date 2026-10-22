@@ -306,10 +306,83 @@ fn ui_commands_are_all_classified() {
     }
     assert!(found.len() >= 15, "found only {found:?}");
     for id in &found {
-        let n = [gridcraft_ui_egui::UI_COMMANDS_ALLOWED, gridcraft_ui_egui::UI_COMMANDS_OFF].iter().filter(|l| l.contains(&id.as_str())).count();
-        assert_eq!(n, 1, "app command `{id}` must be in exactly one of UI_COMMANDS_ALLOWED / UI_COMMANDS_OFF");
+        let lists = [gridcraft_ui_egui::UI_COMMANDS_ALLOWED, gridcraft_ui_egui::UI_COMMANDS_OFF, gridcraft_ui_egui::UI_COMMANDS_PLUMBING];
+        let n = lists.iter().filter(|l| l.contains(&id.as_str())).count();
+        assert_eq!(n, 1, "app command `{id}` must be in exactly one of UI_COMMANDS_ALLOWED / UI_COMMANDS_OFF / UI_COMMANDS_PLUMBING");
     }
-    for id in gridcraft_ui_egui::UI_COMMANDS_ALLOWED.iter().chain(gridcraft_ui_egui::UI_COMMANDS_OFF) {
+    for id in gridcraft_ui_egui::UI_COMMANDS_ALLOWED.iter().chain(gridcraft_ui_egui::UI_COMMANDS_OFF).chain(gridcraft_ui_egui::UI_COMMANDS_PLUMBING) {
         assert!(found.iter().any(|f| f == id), "`{id}` is classified but run_ui_command has no such arm");
     }
+}
+
+#[test]
+fn a_copy_dialog_opens_for_the_export_that_is_on() {
+    for (overrides, format, opens) in [
+        (&[("file.exportCsv", true)][..], "csv", true),
+        (&[("file.exportCsv", true)][..], "html", false),
+        (&[("file.exportCsv", true)][..], "xlsx", false),
+        (&[("file.exportHtml", true)][..], "html", true),
+        (&[("file.exportPdf", true)][..], "pdf", true),
+        (&[("file.saveAs", true)][..], "xlsx", true),
+        (&[("file.saveAs", true)][..], "csv", false),
+        (&[][..], "csv", false),
+    ] {
+        let mut h = harness_with(true, overrides, Services::default());
+        h.state_mut().open_dialog("saveCopy", json!({"format": format}));
+        h.run_steps(2);
+        assert_eq!(h.state().dialog.is_some(), opens, "{format} with {overrides:?}");
+    }
+}
+
+#[test]
+fn an_app_command_that_is_off_is_refused_without_a_word() {
+    let mut h = harness_with(true, &[("view.animations", false)], Services::default());
+    let e = h.state_mut().run("view.animations", json!({})).unwrap_err();
+    assert!(e.contains(gridcraft_engine::hostlock::BLOCKED_TEXT), "{e}");
+    h.state_mut().run_or_alert("view.animations", json!({}));
+    h.run_steps(2);
+    assert!(h.state().message.is_none(), "no message box for a command that is switched off");
+    assert!(h.state_mut().run("view.collapseRibbon", json!({})).is_ok());
+    assert!(h.state_mut().run("ui.ribbonTab", json!({"tab": "Insert"})).is_ok(), "the plumbing is no switch");
+}
+
+#[test]
+fn get_data_fills_a_sheet_and_never_swaps_the_workbook() {
+    let services = Services {
+        pick_data_async: Some(Box::new(|inbox: Inbox| inbox.lock().unwrap().push(("data.csv".into(), b"a,b\n1,2\n".to_vec())))),
+        ..Default::default()
+    };
+    let mut h = harness_with(true, &[], services);
+    let sheets = |h: &egui_kittest::Harness<'static, SheetApp>| h.state().session.active().map_or(0, |d| d.wb.sheets.len());
+    let before = sheets(&h);
+    // Get Data without a file asks the app to pick one, not to open a workbook.
+    h.state_mut().run_or_alert("data.getData", json!({}));
+    h.run_steps(2);
+    assert_eq!(h.state().dialog.as_ref().map(|d| d.name()), Some("importData"));
+    h.get_by_label("Browse…").click();
+    h.run_steps(4);
+    assert_eq!(h.state().session.documents().len(), 1, "the file did not become a workbook");
+    assert_eq!(sheets(&h), before + 1, "the data is a sheet of the open workbook");
+    assert!(h.state().dialog.is_none() && h.state().message.is_none());
+    // A path would read a local file, and the Open dialog stays shut.
+    assert!(h.state_mut().run("data.getData", json!({"path": "/etc/hosts"})).is_err());
+    h.state_mut().open_dialog("open", json!({}));
+    h.run_steps(2);
+    assert!(h.state().dialog.is_none());
+    // Off: no dialog.
+    let mut h = harness_with(true, &[("data.getData", false)], Services::default());
+    h.state_mut().open_dialog("importData", json!({}));
+    h.run_steps(2);
+    assert!(h.state().dialog.is_none());
+}
+
+#[test]
+fn the_save_as_and_export_pages_offer_only_the_formats_that_are_on() {
+    let mut h = harness_with(true, &[("file.exportCsv", true)], counting(&Arc::default(), &Downloads::default(), Inbox::default()));
+    h.get_by_label("File").click();
+    h.run_steps(3);
+    h.state_mut().run("ui.backstage", json!({"page": "export"})).unwrap();
+    h.run_steps(3);
+    assert!(h.query_by_label_contains("CSV (Comma delimited)").is_some());
+    assert!(h.query_by_label_contains("Web Page").is_none() && h.query_by_label_contains("Create PDF").is_none());
 }

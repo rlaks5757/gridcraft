@@ -394,8 +394,6 @@ pub const BLOCKED: &[&str] = &[
     "automate.newScript",
     "automate.recordActions",
     "automate.runScript",
-    "data.fromTextCsv",
-    "data.getData",
     "file.close",
     "file.new",
     "view.macros",
@@ -411,6 +409,8 @@ pub const OFF: &[&str] = &[
 ];
 /// Commands a locked session runs only with certain params (see [`permits`]).
 pub const CONDITIONAL: &[&str] = &[
+    "data.fromTextCsv",
+    "data.getData",
     "file.open",
     "file.save",
     "file.saveBytes",
@@ -450,6 +450,8 @@ pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
     match id {
         // A workbook the parent sent arrives as bytes; no path, no picker.
         "file.open" => has("base64") && !has("path"),
+        // Data goes into the open workbook as text the app read; a path would read a local file.
+        "data.fromTextCsv" | "data.getData" => policy.enabled(id, Grade::On) && !has("path"),
         // Save hands the xlsx to the parent; a path would pick a file (and its extension a format).
         "file.save" => policy.enabled(id, Grade::On) && (!has("path") || policy.enabled("file.saveAs", Grade::Off)),
         "file.saveBytes" => {
@@ -541,6 +543,20 @@ mod tests {
             assert!(permits(s.host_policy().as_ref(), id, &json!({})), "{id}");
         }
         assert!(s.execute("home.addIns", json!({})).is_ok());
+    }
+
+    #[test]
+    fn data_comes_in_as_text_not_as_a_path() {
+        let mut s = locked();
+        let before = s.documents().len();
+        s.execute("data.getData", json!({"text": "a,b\n1,2\n"})).unwrap();
+        assert_eq!(s.documents().len(), before, "the data goes into the open workbook");
+        for id in ["data.getData", "data.fromTextCsv"] {
+            let e = s.execute(id, json!({"path": "/etc/hosts"})).unwrap_err().to_string();
+            assert!(e.contains(BLOCKED_TEXT), "{id}");
+        }
+        s.set_policy(&[("data.getData".to_string(), false)]);
+        assert!(s.execute("data.getData", json!({"text": "a\n"})).unwrap_err().to_string().contains(BLOCKED_TEXT));
     }
 
     #[test]

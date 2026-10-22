@@ -775,6 +775,7 @@ impl Dialog {
             }
             "pickList" => Dialog::custom("pickList", "Pick From List", json!({})),
             "saveCopy" => Dialog::custom("saveCopy", "Save a Copy", json!({"format": p("format")})),
+            "importData" => Dialog::custom("importData", "Get Data", json!({})),
             "saveChanges" => Dialog::custom("saveChanges", "Save Changes?", json!({"title": p("title")})),
             "start" => Dialog::custom("start", "GridCraft", json!({})),
             "comments" => {
@@ -1181,6 +1182,37 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
                         }
                     }
                 }
+                "importData" => {
+                    // A private inbox dies with this dialog. The data goes into this workbook as a
+                    // new sheet; the file never becomes a workbook of its own.
+                    let arrived = d.picture_inbox.as_ref().and_then(|inbox| inbox.lock().unwrap_or_else(std::sync::PoisonError::into_inner).pop());
+                    if let Some((name, bytes)) = arrived {
+                        d.picture_inbox = None;
+                        match String::from_utf8(bytes) {
+                            Ok(text) if text.len() <= 16 * 1024 * 1024 => {
+                                let delimiter = if name.to_ascii_lowercase().ends_with(".tsv") { "\t" } else { "," };
+                                app.run_or_alert("data.getData", json!({"text": text, "delimiter": delimiter}));
+                                open = false;
+                            }
+                            _ => app.message = Some((d.title.clone(), "Choose a CSV, TSV or JSON text file no larger than 16 MB.".into())),
+                        }
+                    }
+                    ui.label("Import a CSV, TSV or JSON file into this workbook as a new sheet.");
+                    if app.services.pick_data_async.is_some() {
+                        if ui.button("Browse…").clicked()
+                            && let Some(start) = &app.services.pick_data_async
+                        {
+                            let inbox = crate::Inbox::default();
+                            start(inbox.clone());
+                            d.picture_inbox = Some(inbox);
+                        }
+                    } else {
+                        ui.label("This app cannot pick a file here.");
+                    }
+                    if ui.button("Close").clicked() {
+                        open = false;
+                    }
+                }
                 "saveChanges" => {
                     ui.label(format!("Do you want to save the changes you made to {}?", d.values.get("title").and_then(Json::as_str).unwrap_or("this workbook")));
                     ui.horizontal(|ui| {
@@ -1231,24 +1263,6 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
                 _ => form(ui, &mut d, &mut confirm, &mut open),
             }
         });
-    // Hyperlinks inside dialogs (About ▸ Contributors) open through the host's `open_url`, since
-    // the native shell has no browser integration of its own.
-    if let Some(open_url) = &app.services.open_url {
-        let urls: Vec<String> = ctx.output_mut(|o| {
-            let mut urls = vec![];
-            o.commands.retain(|c| match c {
-                egui::OutputCommand::OpenUrl(u) => {
-                    urls.push(u.url.clone());
-                    false
-                }
-                _ => true,
-            });
-            urls
-        });
-        for u in urls {
-            open_url(&u);
-        }
-    }
     if ctx.input(|i| i.key_pressed(Key::Escape)) || !win_open {
         open = false;
     }
