@@ -1,6 +1,8 @@
 //! Whether the page starts GridCraft. The PPM build (`ppm-host` feature) works only inside a
 //! same-origin parent page that talks to it; opened directly it shows a notice and nothing else.
 
+use gridcraft_ui_egui::i18n::Language;
+
 /// Shown in place of the app when a PPM build is not framed by the PPM page.
 pub const OPEN_FROM_PPM: &str = "<p>PPM에서 열어 주세요</p>";
 
@@ -14,6 +16,19 @@ pub enum Start {
 /// `has_bridge`: a same-origin parent page was found.
 pub fn decide(host_build: bool, host_param: Option<&str>, has_bridge: bool) -> Start {
     if host_build && !(host_param == Some("parent") && has_bridge) { Start::OpenFromPpm } else { Start::Run }
+}
+
+/// The interface language the page starts in. The PPM build (`host_build`) always starts in Korean:
+/// it embeds a Korean font and ignores the browser's language. The upstream build follows the
+/// browser, except a CJK one, since it bundles no CJK font and that interface would render as tofu.
+pub fn start_language(host_build: bool, browser: Language) -> Language {
+    if host_build {
+        Language::Ko
+    } else if matches!(browser, Language::Zh | Language::Ja | Language::Ko) {
+        Language::default()
+    } else {
+        browser
+    }
 }
 
 /// Is the parent on the page's own origin? `parent` is what the page could read of the parent's
@@ -49,6 +64,22 @@ mod tests {
     fn the_upstream_build_is_unchanged() {
         for (param, bridge) in [(None, false), (Some("parent"), false), (Some("parent"), true), (None, true)] {
             assert_eq!(decide(false, param, bridge), Start::Run);
+        }
+    }
+
+    #[test]
+    fn the_ppm_build_starts_in_korean_whatever_the_browser_says() {
+        for browser in Language::ALL {
+            assert_eq!(start_language(true, browser), Language::Ko);
+        }
+    }
+
+    #[test]
+    fn the_upstream_build_follows_the_browser_except_cjk() {
+        assert_eq!(start_language(false, Language::De), Language::De);
+        assert_eq!(start_language(false, Language::En), Language::En);
+        for cjk in [Language::Ko, Language::Ja, Language::Zh] {
+            assert_eq!(start_language(false, cjk), Language::En, "no CJK font in the upstream web build");
         }
     }
 

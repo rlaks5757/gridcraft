@@ -54,14 +54,14 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
             // AutoSave toggle (saves after each change when the workbook has a file).
             // Host lock: no AutoSave, and no Home page (it lists and opens files).
             if !app.host_locked() {
-                ui.label(egui::RichText::new("AutoSave").font(theme::ui_font(12.5)).color(t.text_dim));
+                ui.label(egui::RichText::new(crate::i18n::t(ui, "AutoSave")).font(theme::ui_font(12.5)).color(t.text_dim));
                 let on = app.grid.autosave();
                 let (r, resp) = ui.allocate_exact_size(vec2(30.0, 16.0), Sense::click());
                 ui.painter().rect_filled(r, 8.0, if on { t.accent } else { Color32::TRANSPARENT });
                 ui.painter().rect_stroke(r, 8.0, Stroke::new(1.0, if on { t.accent } else { t.text_dim }), StrokeKind::Inside);
                 let knob = if on { pos2(r.right() - 8.0, r.center().y) } else { pos2(r.left() + 8.0, r.center().y) };
                 ui.painter().circle_filled(knob, 5.0, if on { Color32::WHITE } else { t.text_dim });
-                if resp.on_hover_text("AutoSave: save after every change (workbooks saved to a file)").clicked() {
+                if resp.on_hover_text(crate::i18n::t(ui, "AutoSave: save after every change (workbooks saved to a file)")).clicked() {
                     app.grid.toggle_autosave();
                 }
                 ui.add_space(6.0);
@@ -87,10 +87,10 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 let labels: Vec<String> =
                     app.session.active().map(|d| d.undo.iter().rev().take(20).map(|e| e.label.clone()).collect()).unwrap_or_default();
                 if labels.is_empty() {
-                    ui.label("Can't Undo");
+                    ui.label(crate::i18n::t(ui, "Can't Undo"));
                 }
                 for (i, l) in labels.iter().enumerate() {
-                    if ui.button(format!("Undo {l}")).clicked() {
+                    if ui.button(app.ui.language.tr("Undo {l}").replacen("{l}", l, 1)).clicked() {
                         app.run_or_alert("edit.undo", json!({"steps": i + 1}));
                     }
                 }
@@ -111,7 +111,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                         app.run_or_alert(id, json!({}));
                     }
                 }
-                if app.allowed("file.print") && ui.button("Print…").clicked() {
+                if app.allowed("file.print") && ui.button(crate::i18n::t(ui, "Print…")).clicked() {
                     app.print_now(json!({}));
                 }
             });
@@ -141,7 +141,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 if app.allowed("file.exportPdf") || copies.iter().any(|c| app.allowed(c.2)) {
                     let share = small_button(ui, Icon::Share, "Share", "Share: export or save a copy", true);
                     egui::Popup::menu(&share).show(|ui| {
-                        if app.allowed("file.exportPdf") && ui.button("Export as PDF…").clicked() {
+                        if app.allowed("file.exportPdf") && ui.button(crate::i18n::t(ui, "Export as PDF…")).clicked() {
                             app.run_or_alert("file.exportPdf", json!({}));
                         }
                         for (label, fmt, id) in copies {
@@ -449,7 +449,7 @@ pub(crate) fn editable_combo(
             });
         }
         let text_id = anchor.id.with(salt).with("__combo_text");
-        let te = ui.add(egui::TextEdit::singleline(&mut st.text).id(text_id).desired_width(220.0).hint_text("Type to filter…"));
+        let te = ui.add(egui::TextEdit::singleline(&mut st.text).id(text_id).desired_width(220.0).hint_text(crate::i18n::t(ui, "Type to filter…")));
         if open_now && !te.has_focus() {
             ui.ctx().memory_mut(|m| m.request_focus(text_id));
             // Select all once focus lands so typing replaces the filter.
@@ -681,7 +681,7 @@ fn home(app: &mut SheetApp, ui: &mut Ui) {
                     }
                 }
                 ui.separator();
-                if ui.button("More Borders…").clicked() {
+                if ui.button(crate::i18n::t(ui, "More Borders…")).clicked() {
                     app.open_dialog("formatCells", json!({"tab": "Border"}));
                 }
             });
@@ -989,7 +989,7 @@ fn home(app: &mut SheetApp, ui: &mut Ui) {
                     }
                 }
                 ui.separator();
-                if ui.button("More Functions…").clicked() {
+                if ui.button(crate::i18n::t(ui, "More Functions…")).clicked() {
                     app.open_dialog("insertFunction", json!({}));
                 }
             });
@@ -1172,13 +1172,13 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
                 app.open_dialog("cfQuick", json!({"type": "cellIs", "operator": op, "title": label}));
             }
         }
-        if ui.button("Text that Contains…").clicked() {
+        if ui.button(crate::i18n::t(ui, "Text that Contains…")).clicked() {
             app.open_dialog("cfQuick", json!({"type": "containsText", "title": "Text that Contains"}));
         }
-        if ui.button("A Date Occurring…").clicked() {
+        if ui.button(crate::i18n::t(ui, "A Date Occurring…")).clicked() {
             app.open_dialog("cfQuick", json!({"type": "timePeriod", "title": "A Date Occurring"}));
         }
-        if ui.button("Duplicate Values…").clicked() {
+        if ui.button(crate::i18n::t(ui, "Duplicate Values…")).clicked() {
             act(app, "home.conditionalFormat", json!({"rule": {"type": "duplicate"}}));
         }
     });
@@ -1234,7 +1234,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
         }
     });
     ui.separator();
-    if ui.button("New Rule…").clicked() {
+    if ui.button(crate::i18n::t(ui, "New Rule…")).clicked() {
         app.open_dialog("cfQuick", json!({"type": "expression", "title": "New Formatting Rule"}));
     }
     ui.menu_button("Clear Rules", |ui| {
@@ -1247,7 +1247,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    if ui.button("Manage Rules…").clicked() {
+    if ui.button(crate::i18n::t(ui, "Manage Rules…")).clicked() {
         app.open_dialog("manageRules", json!({}));
     }
 }
@@ -2306,7 +2306,7 @@ fn table_design(app: &mut SheetApp, ui: &mut Ui) {
         return;
     };
     ui.vertical(|ui| {
-        ui.label(egui::RichText::new("Table Name:").small());
+        ui.label(egui::RichText::new(crate::i18n::t(ui, "Table Name:")).small());
         let field = egui::Id::new(("gridcraft.table_name", &tname));
         if let Some(name) = crate::widgets::committed_text(ui, field, &tname, Some(120.0))
             && name != tname

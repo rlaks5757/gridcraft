@@ -163,6 +163,11 @@ fn lang_key() -> egui::Id {
     egui::Id::new("gridcraft.language")
 }
 
+/// Translates `text` into the language the current frame draws in (for call sites that only hold a `Ui`).
+pub fn t<'a>(ui: &egui::Ui, text: &'a str) -> &'a str {
+    current(ui.ctx()).tr(text)
+}
+
 /// The language the current frame is drawing in. `En` when unset.
 pub fn current(ctx: &egui::Context) -> Language {
     ctx.data(|d| d.get_temp(lang_key())).unwrap_or_default()
@@ -713,5 +718,24 @@ mod tests {
         for l in Language::ALL {
             assert_eq!(Language::parse(l.code()), Some(l));
         }
+    }
+
+    /// `{}` / `{name}` slots are filled in by the caller after translation, so a Korean entry must
+    /// keep exactly the slots of its English key.
+    #[test]
+    fn korean_entries_keep_their_placeholders() {
+        fn slots(text: &str) -> Vec<String> {
+            let mut out: Vec<String> = text.split('{').skip(1).filter_map(|rest| rest.split_once('}').map(|(name, _)| name.to_owned())).collect();
+            out.sort();
+            out
+        }
+        let mut checked = 0;
+        for line in include_str!("i18n/ko.rs").lines() {
+            let Some((key, value)) = line.trim().strip_prefix('"').and_then(|l| l.split_once("\" => \"")) else { continue };
+            let Some(value) = value.strip_suffix("\",") else { continue };
+            assert_eq!(slots(key), slots(value), "placeholder mismatch: {key}");
+            checked += 1;
+        }
+        assert!(checked > 500, "only {checked} Korean entries were parsed");
     }
 }

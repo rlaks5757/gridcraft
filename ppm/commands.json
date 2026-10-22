@@ -7,7 +7,7 @@
       },
       "id": "app.commands",
       "label": "List Commands",
-      "labelKo": null,
+      "labelKo": "명령 목록",
       "location": []
     },
     {
@@ -16,7 +16,7 @@
       },
       "id": "app.language.english",
       "label": "Interface Language: English",
-      "labelKo": null,
+      "labelKo": "인터페이스 언어: 영어",
       "location": [
         "File",
         "Options"
@@ -28,7 +28,7 @@
       },
       "id": "app.language.japanese",
       "label": "Interface Language: Japanese",
-      "labelKo": null,
+      "labelKo": "인터페이스 언어: 일본어",
       "location": [
         "File",
         "Options"
@@ -40,7 +40,7 @@
       },
       "id": "app.language.set",
       "label": "Interface Language",
-      "labelKo": null,
+      "labelKo": "인터페이스 언어",
       "location": [
         "File",
         "Options"
@@ -52,7 +52,7 @@
       },
       "id": "arrange.align",
       "label": "Align",
-      "labelKo": null,
+      "labelKo": "맞춤",
       "location": [
         "Page Layout",
         "Arrange"
@@ -64,7 +64,7 @@
       },
       "id": "arrange.bringForward",
       "label": "Bring Forward",
-      "labelKo": null,
+      "labelKo": "앞으로 가져오기",
       "location": [
         "Page Layout",
         "Arrange"
@@ -88,7 +88,7 @@
       },
       "id": "arrange.rotate",
       "label": "Rotate",
-      "labelKo": null,
+      "labelKo": "회전",
       "location": [
         "Page Layout",
         "Arrange"
@@ -100,7 +100,7 @@
       },
       "id": "arrange.selectionPane",
       "label": "Selection Pane",
-      "labelKo": null,
+      "labelKo": "선택 창",
       "location": [
         "Page Layout",
         "Arrange"
@@ -112,7 +112,7 @@
       },
       "id": "arrange.sendBackward",
       "label": "Send Backward",
-      "labelKo": null,
+      "labelKo": "뒤로 보내기",
       "location": [
         "Page Layout",
         "Arrange"
@@ -124,7 +124,7 @@
       },
       "id": "automate.allScripts",
       "label": "All Scripts",
-      "labelKo": null,
+      "labelKo": "모든 스크립트",
       "location": [
         "Automate",
         "Scripting Tools"
@@ -136,7 +136,7 @@
       },
       "id": "automate.deleteScript",
       "label": "Delete Script",
-      "labelKo": null,
+      "labelKo": "스크립트 삭제",
       "location": []
     },
     {
@@ -145,7 +145,7 @@
       },
       "id": "automate.newScript",
       "label": "New Script",
-      "labelKo": null,
+      "labelKo": "새 스크립트",
       "location": [
         "Automate",
         "Scripting Tools"
@@ -157,7 +157,7 @@
       },
       "id": "automate.recordActions",
       "label": "Record Actions",
-      "labelKo": null,
+      "labelKo": "동작 기록",
       "location": [
         "Automate",
         "Scripting Tools"
@@ -169,7 +169,7 @@
       },
       "id": "automate.runScript",
       "label": "Run Script",
-      "labelKo": null,
+      "labelKo": "스크립트 실행",
       "location": []
     },
     {
@@ -178,7 +178,7 @@
       },
       "id": "cell.get",
       "label": "Get Cell",
-      "labelKo": null,
+      "labelKo": "셀 가져오기",
       "location": []
     },
     {
@@ -187,7 +187,7 @@
       },
       "id": "cell.set",
       "label": "Enter Cell",
-      "labelKo": null,
+      "labelKo": "셀 입력",
       "location": []
     },
     {
@@ -196,7 +196,7 @@
       },
       "id": "cell.toggleCheckbox",
       "label": "Toggle Checkbox",
-      "labelKo": null,
+      "labelKo": "확인란 전환",
       "location": []
     },
     {
@@ -205,7 +205,7 @@
       },
       "id": "chart.addElement",
       "label": "Add Chart Element",
-      "labelKo": null,
+      "labelKo": "차트 요소 추가",
       "location": [
         "Chart Design",
         "Chart Layouts"
@@ -217,7 +217,7 @@
       },
       "id": "chart.changeColors",
       "label": "Change Colors",
-      "labelKo": null,
+      "labelKo": "색 변경",
       "location": [
         "Chart Design",
         "Chart Styles"
@@ -229,7 +229,7 @@
       },
       "id": "chart.changeType",
       "label": "Change Chart Type…",
-      "labelKo": null,
+      "labelKo": "차트 종류 변경…",
       "location": [
         "Chart Design",
         "Type"
@@ -241,7 +241,7 @@
       },
       "id": "chart.delete",
       "label": "Delete Chart",
-      "labelKo": null,
+      "labelKo": "차트 삭제",
       "location": []
     },
     {
@@ -250,7 +250,7 @@
       },
       "id": "chart.formatSelection",
       "label": "Format Selection",
-      "labelKo": null,
+      "labelKo": "선택 영역 서식",
       "location": [
         "Format",
         "Current Selection"
@@ -262,7 +262,7 @@
       },
       "id": "chart.move",
       "label": "Move Chart…",
-      "labelKo": null,
+      "labelKo": "차트 이동…",
       "location": [
         "Chart Design",
         "Location"
@@ -274,7 +274,7 @@
       },
       "id": "chart.quickLayout",
       "label": "Quick Layout",
-      "labelKo": null,
+      "labelKo": "빠른 레이아웃",
       "location": [
         "Chart Design",
         "Chart Layouts"
@@ -286,7 +286,7 @@
       },
       "id": "chart.selectData",
       "label": "Select Data…",
-      "labelKo": null,
+      "labelKo": "데이터 선택…",
       "location": [
         "Chart Design",
         "Data"
@@ -298,7 +298,7 @@
       },
       "id": "chart.set",
       "label": "Chart Properties",
-      "labelKo": null,
+      "labelKo": "차트 속성",
       "location": [
         "Chart Design"
       ]
@@ -309,7 +309,7 @@
       },
       "id": "chart.shapeFill",
       "label": "Shape Fill",
-      "labelKo": null,
+      "labelKo": "도형 채우기",
       "location": [
         "Format",
         "Shape Styles"
@@ -321,7 +321,7 @@
       },
       "id": "chart.shapeOutline",
       "label": "Shape Outline",
-      "labelKo": null,
+      "labelKo": "도형 윤곽선",
       "location": [
         "Format",
         "Shape Styles"
@@ -333,7 +333,7 @@
       },
       "id": "chart.switchRowColumn",
       "label": "Switch Row/Column",
-      "labelKo": null,
+      "labelKo": "행/열 전환",
       "location": [
         "Chart Design",
         "Data"
@@ -345,7 +345,7 @@
       },
       "id": "data.advancedFilter",
       "label": "Advanced…",
-      "labelKo": null,
+      "labelKo": "고급…",
       "location": [
         "Data",
         "Sort & Filter"
@@ -357,7 +357,7 @@
       },
       "id": "data.analysisToolPak",
       "label": "Data Analysis…",
-      "labelKo": null,
+      "labelKo": "데이터 분석…",
       "location": [
         "Data",
         "Analysis"
@@ -394,7 +394,7 @@
       },
       "id": "data.consolidate",
       "label": "Consolidate…",
-      "labelKo": null,
+      "labelKo": "통합…",
       "location": [
         "Data",
         "Data Tools"
@@ -431,7 +431,7 @@
       },
       "id": "data.filterBy",
       "label": "Filter Column",
-      "labelKo": null,
+      "labelKo": "열 필터",
       "location": []
     },
     {
@@ -452,7 +452,7 @@
       },
       "id": "data.forecastSheet",
       "label": "Forecast Sheet",
-      "labelKo": null,
+      "labelKo": "예측 시트",
       "location": [
         "Data",
         "Forecast"
@@ -464,7 +464,7 @@
       },
       "id": "data.fromTableRange",
       "label": "From Table/Range",
-      "labelKo": null,
+      "labelKo": "테이블/범위에서",
       "location": [
         "Data",
         "Get & Transform Data"
@@ -476,7 +476,7 @@
       },
       "id": "data.fromTextCsv",
       "label": "From Text/CSV",
-      "labelKo": null,
+      "labelKo": "텍스트/CSV에서",
       "location": [
         "Data",
         "Get & Transform Data"
@@ -488,7 +488,7 @@
       },
       "id": "data.getData",
       "label": "Get Data",
-      "labelKo": null,
+      "labelKo": "데이터 가져오기",
       "location": [
         "Data",
         "Get & Transform Data"
@@ -537,7 +537,7 @@
       },
       "id": "data.queriesConnections",
       "label": "Queries & Connections",
-      "labelKo": null,
+      "labelKo": "쿼리 및 연결",
       "location": [
         "Data",
         "Queries & Connections"
@@ -561,7 +561,7 @@
       },
       "id": "data.refreshAll",
       "label": "Refresh All",
-      "labelKo": null,
+      "labelKo": "모두 새로 고침",
       "location": [
         "Data",
         "Queries & Connections"
@@ -573,7 +573,7 @@
       },
       "id": "data.removeDuplicates",
       "label": "Remove Duplicates",
-      "labelKo": null,
+      "labelKo": "중복된 항목 제거",
       "location": [
         "Data",
         "Data Tools"
@@ -585,7 +585,7 @@
       },
       "id": "data.scenarioAdd",
       "label": "Add Scenario",
-      "labelKo": null,
+      "labelKo": "시나리오 추가",
       "location": []
     },
     {
@@ -594,7 +594,7 @@
       },
       "id": "data.scenarioDelete",
       "label": "Delete Scenario",
-      "labelKo": null,
+      "labelKo": "시나리오 삭제",
       "location": []
     },
     {
@@ -616,7 +616,7 @@
       },
       "id": "data.scenarioShow",
       "label": "Show Scenario",
-      "labelKo": null,
+      "labelKo": "시나리오 표시",
       "location": []
     },
     {
@@ -625,7 +625,7 @@
       },
       "id": "data.scenarioSummary",
       "label": "Scenario Summary",
-      "labelKo": null,
+      "labelKo": "시나리오 요약",
       "location": []
     },
     {
@@ -646,7 +646,7 @@
       },
       "id": "data.showLevels",
       "label": "Show Outline Levels",
-      "labelKo": null,
+      "labelKo": "윤곽 수준 표시",
       "location": []
     },
     {
@@ -655,7 +655,7 @@
       },
       "id": "data.solver",
       "label": "Solver…",
-      "labelKo": null,
+      "labelKo": "해 찾기…",
       "location": [
         "Data",
         "Analysis"
@@ -667,7 +667,7 @@
       },
       "id": "data.solverReport",
       "label": "Solver Reports",
-      "labelKo": null,
+      "labelKo": "해 찾기 보고서",
       "location": []
     },
     {
@@ -676,7 +676,7 @@
       },
       "id": "data.sort",
       "label": "Sort…",
-      "labelKo": null,
+      "labelKo": "정렬…",
       "location": [
         "Data",
         "Sort & Filter"
@@ -724,7 +724,7 @@
       },
       "id": "data.textToColumns",
       "label": "Text to Columns",
-      "labelKo": null,
+      "labelKo": "텍스트 나누기",
       "location": [
         "Data",
         "Data Tools"
@@ -748,7 +748,7 @@
       },
       "id": "data.validate",
       "label": "Check Value Against Validation",
-      "labelKo": null,
+      "labelKo": "유효성 검사로 값 확인",
       "location": []
     },
     {
@@ -769,7 +769,7 @@
       },
       "id": "document.inspect",
       "label": "Inspect Workbook",
-      "labelKo": null,
+      "labelKo": "통합 문서 검사",
       "location": []
     },
     {
@@ -790,7 +790,7 @@
       },
       "id": "draw.inkToShape",
       "label": "Ink to Shape",
-      "labelKo": null,
+      "labelKo": "잉크를 도형으로",
       "location": [
         "Draw",
         "Convert"
@@ -802,7 +802,7 @@
       },
       "id": "draw.lasso",
       "label": "Lasso Select",
-      "labelKo": null,
+      "labelKo": "올가미 선택",
       "location": [
         "Draw",
         "Tools"
@@ -814,7 +814,7 @@
       },
       "id": "draw.pen",
       "label": "Pen",
-      "labelKo": null,
+      "labelKo": "펜",
       "location": [
         "Draw",
         "Tools"
@@ -826,7 +826,7 @@
       },
       "id": "draw.stroke",
       "label": "Ink Stroke",
-      "labelKo": null,
+      "labelKo": "잉크 획",
       "location": []
     },
     {
@@ -835,7 +835,7 @@
       },
       "id": "edit.autoFill",
       "label": "AutoFill",
-      "labelKo": null,
+      "labelKo": "자동 채우기",
       "location": []
     },
     {
@@ -844,7 +844,7 @@
       },
       "id": "edit.beginEdit",
       "label": "Edit Cell",
-      "labelKo": null,
+      "labelKo": "셀 편집",
       "location": []
     },
     {
@@ -866,7 +866,7 @@
       },
       "id": "edit.clearClipboard",
       "label": "Cancel Copy",
-      "labelKo": null,
+      "labelKo": "복사 취소",
       "location": []
     },
     {
@@ -927,7 +927,7 @@
       },
       "id": "edit.copy",
       "label": "Copy",
-      "labelKo": null,
+      "labelKo": "복사",
       "location": [
         "Home",
         "Clipboard"
@@ -939,7 +939,7 @@
       },
       "id": "edit.cut",
       "label": "Cut",
-      "labelKo": null,
+      "labelKo": "잘라내기",
       "location": [
         "Home",
         "Clipboard"
@@ -951,7 +951,7 @@
       },
       "id": "edit.fillDown",
       "label": "Fill Down",
-      "labelKo": null,
+      "labelKo": "아래쪽 채우기",
       "location": [
         "Home",
         "Editing",
@@ -964,7 +964,7 @@
       },
       "id": "edit.fillLeft",
       "label": "Fill Left",
-      "labelKo": null,
+      "labelKo": "왼쪽 채우기",
       "location": [
         "Home",
         "Editing",
@@ -977,7 +977,7 @@
       },
       "id": "edit.fillRight",
       "label": "Fill Right",
-      "labelKo": null,
+      "labelKo": "오른쪽 채우기",
       "location": [
         "Home",
         "Editing",
@@ -990,7 +990,7 @@
       },
       "id": "edit.fillSeries",
       "label": "Series…",
-      "labelKo": null,
+      "labelKo": "계열…",
       "location": [
         "Home",
         "Editing",
@@ -1003,7 +1003,7 @@
       },
       "id": "edit.fillUp",
       "label": "Fill Up",
-      "labelKo": null,
+      "labelKo": "위쪽 채우기",
       "location": [
         "Home",
         "Editing",
@@ -1042,7 +1042,7 @@
       },
       "id": "edit.formatPainter",
       "label": "Format Painter",
-      "labelKo": null,
+      "labelKo": "서식 복사",
       "location": [
         "Home",
         "Clipboard"
@@ -1104,7 +1104,7 @@
       },
       "id": "edit.redo",
       "label": "Redo",
-      "labelKo": null,
+      "labelKo": "다시 실행",
       "location": [
         "Edit"
       ]
@@ -1128,7 +1128,7 @@
       },
       "id": "edit.selectAll",
       "label": "Select All",
-      "labelKo": null,
+      "labelKo": "모두 선택",
       "location": [
         "Edit"
       ]
@@ -1139,7 +1139,7 @@
       },
       "id": "edit.undo",
       "label": "Undo",
-      "labelKo": null,
+      "labelKo": "실행 취소",
       "location": [
         "Edit"
       ]
@@ -1161,7 +1161,7 @@
       },
       "id": "file.exportCsv",
       "label": "Export as CSV",
-      "labelKo": null,
+      "labelKo": "CSV로 내보내기",
       "location": [
         "File",
         "Export"
@@ -1173,7 +1173,7 @@
       },
       "id": "file.exportHtml",
       "label": "Save as Web Page",
-      "labelKo": null,
+      "labelKo": "웹 페이지로 저장",
       "location": [
         "File",
         "Export"
@@ -1185,7 +1185,7 @@
       },
       "id": "file.exportPdf",
       "label": "Export as PDF",
-      "labelKo": null,
+      "labelKo": "PDF로 내보내기",
       "location": [
         "File",
         "Export"
@@ -1197,7 +1197,7 @@
       },
       "id": "file.new",
       "label": "New Workbook",
-      "labelKo": null,
+      "labelKo": "새 통합 문서",
       "location": [
         "File"
       ]
@@ -1208,7 +1208,7 @@
       },
       "id": "file.open",
       "label": "Open…",
-      "labelKo": null,
+      "labelKo": "열기…",
       "location": [
         "File"
       ]
@@ -1230,7 +1230,7 @@
       },
       "id": "file.print",
       "label": "Print…",
-      "labelKo": null,
+      "labelKo": "인쇄…",
       "location": [
         "File"
       ]
@@ -1241,7 +1241,7 @@
       },
       "id": "file.printPreview",
       "label": "Print Preview",
-      "labelKo": null,
+      "labelKo": "인쇄 미리 보기",
       "location": [
         "File"
       ]
@@ -1274,7 +1274,7 @@
       },
       "id": "file.saveAs",
       "label": "Save As…",
-      "labelKo": null,
+      "labelKo": "다른 이름으로 저장…",
       "location": [
         "File"
       ]
@@ -1285,7 +1285,7 @@
       },
       "id": "file.saveBytes",
       "label": "Encode Workbook",
-      "labelKo": null,
+      "labelKo": "통합 문서 인코딩",
       "location": []
     },
     {
@@ -1330,7 +1330,7 @@
       },
       "id": "formulas.calculationOptions",
       "label": "Calculation Options",
-      "labelKo": null,
+      "labelKo": "계산 옵션",
       "location": [
         "Formulas",
         "Calculation"
@@ -1354,7 +1354,7 @@
       },
       "id": "formulas.dateTime",
       "label": "Date & Time",
-      "labelKo": null,
+      "labelKo": "날짜 및 시간",
       "location": [
         "Formulas",
         "Function Library"
@@ -1366,7 +1366,7 @@
       },
       "id": "formulas.defineName",
       "label": "Define Name…",
-      "labelKo": null,
+      "labelKo": "이름 정의…",
       "location": [
         "Formulas",
         "Defined Names"
@@ -1378,7 +1378,7 @@
       },
       "id": "formulas.deleteName",
       "label": "Delete Name",
-      "labelKo": null,
+      "labelKo": "이름 삭제",
       "location": []
     },
     {
@@ -1399,7 +1399,7 @@
       },
       "id": "formulas.evaluate",
       "label": "Evaluate",
-      "labelKo": null,
+      "labelKo": "계산",
       "location": []
     },
     {
@@ -1432,7 +1432,7 @@
       },
       "id": "formulas.functions",
       "label": "List Functions",
-      "labelKo": null,
+      "labelKo": "함수 목록",
       "location": []
     },
     {
@@ -1441,7 +1441,7 @@
       },
       "id": "formulas.insertFunction",
       "label": "Insert Function…",
-      "labelKo": null,
+      "labelKo": "함수 삽입…",
       "location": [
         "Formulas",
         "Function Library"
@@ -1465,7 +1465,7 @@
       },
       "id": "formulas.lookupReference",
       "label": "Lookup & Reference",
-      "labelKo": null,
+      "labelKo": "찾기/참조 영역",
       "location": [
         "Formulas",
         "Function Library"
@@ -1477,7 +1477,7 @@
       },
       "id": "formulas.mathTrig",
       "label": "Math & Trig",
-      "labelKo": null,
+      "labelKo": "수학/삼각",
       "location": [
         "Formulas",
         "Function Library"
@@ -1489,7 +1489,7 @@
       },
       "id": "formulas.moreFunctions",
       "label": "More Functions",
-      "labelKo": null,
+      "labelKo": "함수 더 보기",
       "location": [
         "Formulas",
         "Function Library"
@@ -1501,7 +1501,7 @@
       },
       "id": "formulas.nameManager",
       "label": "Name Manager",
-      "labelKo": null,
+      "labelKo": "이름 관리자",
       "location": [
         "Formulas",
         "Defined Names"
@@ -1513,7 +1513,7 @@
       },
       "id": "formulas.recentlyUsed",
       "label": "Recently Used",
-      "labelKo": null,
+      "labelKo": "최근에 사용한 항목",
       "location": [
         "Formulas",
         "Function Library"
@@ -1609,7 +1609,7 @@
       },
       "id": "history.list",
       "label": "Undo History",
-      "labelKo": null,
+      "labelKo": "실행 취소 기록",
       "location": []
     },
     {
@@ -1630,7 +1630,7 @@
       },
       "id": "home.addIns",
       "label": "Add-ins",
-      "labelKo": null,
+      "labelKo": "추가 기능",
       "location": [
         "Home",
         "Add-ins"
@@ -1642,7 +1642,7 @@
       },
       "id": "home.alignBottom",
       "label": "Bottom Align",
-      "labelKo": null,
+      "labelKo": "아래쪽 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -1666,7 +1666,7 @@
       },
       "id": "home.alignLeft",
       "label": "Align Left",
-      "labelKo": null,
+      "labelKo": "왼쪽 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -1678,7 +1678,7 @@
       },
       "id": "home.alignMiddle",
       "label": "Middle Align",
-      "labelKo": null,
+      "labelKo": "가운데 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -1690,7 +1690,7 @@
       },
       "id": "home.alignRight",
       "label": "Align Right",
-      "labelKo": null,
+      "labelKo": "오른쪽 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -1702,7 +1702,7 @@
       },
       "id": "home.alignTop",
       "label": "Top Align",
-      "labelKo": null,
+      "labelKo": "위쪽 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -1740,7 +1740,7 @@
       },
       "id": "home.bold",
       "label": "Bold",
-      "labelKo": null,
+      "labelKo": "굵게",
       "location": [
         "Home",
         "Font"
@@ -1764,7 +1764,7 @@
       },
       "id": "home.cellStyle",
       "label": "Cell Styles",
-      "labelKo": null,
+      "labelKo": "셀 스타일",
       "location": [
         "Home",
         "Styles"
@@ -1776,7 +1776,7 @@
       },
       "id": "home.clearRules",
       "label": "Clear Rules",
-      "labelKo": null,
+      "labelKo": "규칙 지우기",
       "location": [
         "Home",
         "Styles",
@@ -1914,7 +1914,7 @@
       },
       "id": "home.deleteSheet",
       "label": "Delete Sheet",
-      "labelKo": null,
+      "labelKo": "시트 삭제",
       "location": [
         "Home",
         "Cells",
@@ -1939,7 +1939,7 @@
       },
       "id": "home.drawBorder",
       "label": "Draw Border",
-      "labelKo": null,
+      "labelKo": "테두리 그리기",
       "location": [
         "Home",
         "Font"
@@ -1975,7 +1975,7 @@
       },
       "id": "home.fontName",
       "label": "Font",
-      "labelKo": null,
+      "labelKo": "글꼴",
       "location": [
         "Home",
         "Font"
@@ -1987,7 +1987,7 @@
       },
       "id": "home.fontSize",
       "label": "Font Size",
-      "labelKo": null,
+      "labelKo": "글꼴 크기",
       "location": [
         "Home",
         "Font"
@@ -1999,7 +1999,7 @@
       },
       "id": "home.formatAsTable",
       "label": "Format as Table",
-      "labelKo": null,
+      "labelKo": "표 서식",
       "location": [
         "Home",
         "Styles"
@@ -2140,7 +2140,7 @@
       },
       "id": "home.insertSheet",
       "label": "Insert Sheet",
-      "labelKo": null,
+      "labelKo": "시트 삽입",
       "location": [
         "Home",
         "Cells",
@@ -2153,7 +2153,7 @@
       },
       "id": "home.italic",
       "label": "Italic",
-      "labelKo": null,
+      "labelKo": "기울임꼴",
       "location": [
         "Home",
         "Font"
@@ -2165,7 +2165,7 @@
       },
       "id": "home.justify",
       "label": "Justify",
-      "labelKo": null,
+      "labelKo": "양쪽 맞춤",
       "location": [
         "Home",
         "Alignment"
@@ -2190,7 +2190,7 @@
       },
       "id": "home.manageRules",
       "label": "Manage Rules…",
-      "labelKo": null,
+      "labelKo": "규칙 관리…",
       "location": [
         "Home",
         "Styles",
@@ -2239,7 +2239,7 @@
       },
       "id": "home.newCellStyle",
       "label": "New Cell Style…",
-      "labelKo": null,
+      "labelKo": "새 셀 스타일…",
       "location": [
         "Home",
         "Styles"
@@ -2251,7 +2251,7 @@
       },
       "id": "home.numberFormat",
       "label": "Number Format",
-      "labelKo": null,
+      "labelKo": "표시 형식",
       "location": [
         "Home",
         "Number"
@@ -2300,7 +2300,7 @@
       },
       "id": "home.shrinkToFit",
       "label": "Shrink to Fit",
-      "labelKo": null,
+      "labelKo": "셀에 맞춤",
       "location": []
     },
     {
@@ -2321,7 +2321,7 @@
       },
       "id": "home.subscript",
       "label": "Subscript",
-      "labelKo": null,
+      "labelKo": "아래 첨자",
       "location": [
         "Home",
         "Font"
@@ -2333,7 +2333,7 @@
       },
       "id": "home.superscript",
       "label": "Superscript",
-      "labelKo": null,
+      "labelKo": "위 첨자",
       "location": [
         "Home",
         "Font"
@@ -2409,7 +2409,7 @@
       },
       "id": "insert.chart",
       "label": "Insert Chart",
-      "labelKo": null,
+      "labelKo": "차트 삽입",
       "location": [
         "Insert",
         "Charts"
@@ -2421,7 +2421,7 @@
       },
       "id": "insert.chartRecommendations",
       "label": "Chart Recommendations",
-      "labelKo": null,
+      "labelKo": "차트 추천",
       "location": []
     },
     {
@@ -2466,7 +2466,7 @@
       },
       "id": "insert.picture",
       "label": "Picture",
-      "labelKo": null,
+      "labelKo": "그림",
       "location": [
         "Insert",
         "Illustrations"
@@ -2478,7 +2478,7 @@
       },
       "id": "insert.pivotChart",
       "label": "PivotChart",
-      "labelKo": null,
+      "labelKo": "피벗 차트",
       "location": [
         "Insert",
         "Charts"
@@ -2502,7 +2502,7 @@
       },
       "id": "insert.recommendedCharts",
       "label": "Recommended Charts",
-      "labelKo": null,
+      "labelKo": "추천 차트",
       "location": [
         "Insert",
         "Charts"
@@ -2514,7 +2514,7 @@
       },
       "id": "insert.recommendedPivotTables",
       "label": "Recommended PivotTables",
-      "labelKo": null,
+      "labelKo": "추천 피벗 테이블",
       "location": [
         "Insert",
         "Tables"
@@ -2538,7 +2538,7 @@
       },
       "id": "insert.slicer",
       "label": "Slicer",
-      "labelKo": null,
+      "labelKo": "슬라이서",
       "location": [
         "Insert",
         "Filters"
@@ -2586,7 +2586,7 @@
       },
       "id": "insert.textBox",
       "label": "Text Box",
-      "labelKo": null,
+      "labelKo": "텍스트 상자",
       "location": [
         "Insert",
         "Text"
@@ -2598,7 +2598,7 @@
       },
       "id": "link.open",
       "label": "Open Hyperlink",
-      "labelKo": null,
+      "labelKo": "하이퍼링크 열기",
       "location": []
     },
     {
@@ -2607,7 +2607,7 @@
       },
       "id": "object.delete",
       "label": "Delete Object",
-      "labelKo": null,
+      "labelKo": "개체 삭제",
       "location": []
     },
     {
@@ -2616,7 +2616,7 @@
       },
       "id": "object.move",
       "label": "Move Object",
-      "labelKo": null,
+      "labelKo": "개체 이동",
       "location": []
     },
     {
@@ -2625,7 +2625,7 @@
       },
       "id": "object.setAnchorMode",
       "label": "Object Properties",
-      "labelKo": null,
+      "labelKo": "개체 속성",
       "location": []
     },
     {
@@ -2646,7 +2646,7 @@
       },
       "id": "pageLayout.background",
       "label": "Background",
-      "labelKo": null,
+      "labelKo": "배경",
       "location": [
         "Page Layout",
         "Page Setup"
@@ -2731,7 +2731,7 @@
       },
       "id": "pageLayout.printGridlines",
       "label": "Print Gridlines",
-      "labelKo": null,
+      "labelKo": "눈금선 인쇄",
       "location": [
         "Page Layout",
         "Sheet Options"
@@ -2743,7 +2743,7 @@
       },
       "id": "pageLayout.printHeadings",
       "label": "Print Headings",
-      "labelKo": null,
+      "labelKo": "행/열 머리글 인쇄",
       "location": [
         "Page Layout",
         "Sheet Options"
@@ -2755,7 +2755,7 @@
       },
       "id": "pageLayout.printTitles",
       "label": "Print Titles",
-      "labelKo": null,
+      "labelKo": "인쇄 제목",
       "location": [
         "Page Layout",
         "Page Setup"
@@ -2767,7 +2767,7 @@
       },
       "id": "pageLayout.scaleToFit",
       "label": "Scale to Fit",
-      "labelKo": null,
+      "labelKo": "배율 조정",
       "location": [
         "Page Layout",
         "Scale to Fit"
@@ -2803,7 +2803,7 @@
       },
       "id": "pageLayout.themeColors",
       "label": "Colors",
-      "labelKo": null,
+      "labelKo": "색",
       "location": [
         "Page Layout",
         "Themes"
@@ -2815,7 +2815,7 @@
       },
       "id": "pageLayout.themeEffects",
       "label": "Effects",
-      "labelKo": null,
+      "labelKo": "효과",
       "location": [
         "Page Layout",
         "Themes"
@@ -2827,7 +2827,7 @@
       },
       "id": "pageLayout.themeFonts",
       "label": "Fonts",
-      "labelKo": null,
+      "labelKo": "글꼴",
       "location": [
         "Page Layout",
         "Themes"
@@ -2839,7 +2839,7 @@
       },
       "id": "pivot.addField",
       "label": "Add Field",
-      "labelKo": null,
+      "labelKo": "필드 추가",
       "location": []
     },
     {
@@ -2848,7 +2848,7 @@
       },
       "id": "pivot.calculatedField",
       "label": "Calculated Field",
-      "labelKo": null,
+      "labelKo": "계산 필드",
       "location": [
         "PivotTable Analyze",
         "Calculations"
@@ -2860,7 +2860,7 @@
       },
       "id": "pivot.changeSource",
       "label": "Change Data Source",
-      "labelKo": null,
+      "labelKo": "데이터 원본 변경",
       "location": [
         "PivotTable Analyze",
         "Data"
@@ -2872,7 +2872,7 @@
       },
       "id": "pivot.collapse",
       "label": "Expand/Collapse Field",
-      "labelKo": null,
+      "labelKo": "필드 확장/축소",
       "location": [
         "PivotTable Analyze",
         "Active Field"
@@ -2884,7 +2884,7 @@
       },
       "id": "pivot.delete",
       "label": "Delete PivotTable",
-      "labelKo": null,
+      "labelKo": "피벗 테이블 삭제",
       "location": [
         "PivotTable Analyze",
         "Actions"
@@ -2896,7 +2896,7 @@
       },
       "id": "pivot.fieldList",
       "label": "Field List",
-      "labelKo": null,
+      "labelKo": "필드 목록",
       "location": [
         "PivotTable Analyze",
         "Show"
@@ -2908,7 +2908,7 @@
       },
       "id": "pivot.fields",
       "label": "PivotTable Fields",
-      "labelKo": null,
+      "labelKo": "피벗 테이블 필드",
       "location": []
     },
     {
@@ -2917,7 +2917,7 @@
       },
       "id": "pivot.filter",
       "label": "Filter Items",
-      "labelKo": null,
+      "labelKo": "항목 필터",
       "location": []
     },
     {
@@ -2926,7 +2926,7 @@
       },
       "id": "pivot.grandTotals",
       "label": "Grand Totals",
-      "labelKo": null,
+      "labelKo": "총합계",
       "location": [
         "PivotTable Design",
         "Layout"
@@ -2938,7 +2938,7 @@
       },
       "id": "pivot.group",
       "label": "Group Field",
-      "labelKo": null,
+      "labelKo": "필드 그룹화",
       "location": [
         "PivotTable Analyze",
         "Group"
@@ -2950,7 +2950,7 @@
       },
       "id": "pivot.layout",
       "label": "PivotTable Layout",
-      "labelKo": null,
+      "labelKo": "피벗 테이블 레이아웃",
       "location": [
         "PivotTable Design",
         "Layout"
@@ -2962,7 +2962,7 @@
       },
       "id": "pivot.list",
       "label": "PivotTables",
-      "labelKo": null,
+      "labelKo": "피벗 테이블",
       "location": []
     },
     {
@@ -2971,7 +2971,7 @@
       },
       "id": "pivot.moveField",
       "label": "Move Field",
-      "labelKo": null,
+      "labelKo": "필드 이동",
       "location": []
     },
     {
@@ -2980,7 +2980,7 @@
       },
       "id": "pivot.refresh",
       "label": "Refresh",
-      "labelKo": null,
+      "labelKo": "새로 고침",
       "location": [
         "PivotTable Analyze",
         "Data"
@@ -2992,7 +2992,7 @@
       },
       "id": "pivot.removeField",
       "label": "Remove Field",
-      "labelKo": null,
+      "labelKo": "필드 제거",
       "location": []
     },
     {
@@ -3001,7 +3001,7 @@
       },
       "id": "pivot.reportLayout",
       "label": "Report Layout",
-      "labelKo": null,
+      "labelKo": "보고서 레이아웃",
       "location": [
         "PivotTable Design",
         "Layout"
@@ -3013,7 +3013,7 @@
       },
       "id": "pivot.sort",
       "label": "Sort Field",
-      "labelKo": null,
+      "labelKo": "필드 정렬",
       "location": []
     },
     {
@@ -3022,7 +3022,7 @@
       },
       "id": "pivot.style",
       "label": "PivotTable Styles",
-      "labelKo": null,
+      "labelKo": "피벗 테이블 스타일",
       "location": [
         "PivotTable Design",
         "PivotTable Styles"
@@ -3034,7 +3034,7 @@
       },
       "id": "pivot.subtotals",
       "label": "Subtotals",
-      "labelKo": null,
+      "labelKo": "부분합",
       "location": [
         "PivotTable Design",
         "Layout"
@@ -3046,7 +3046,7 @@
       },
       "id": "pivot.valueSettings",
       "label": "Value Field Settings",
-      "labelKo": null,
+      "labelKo": "값 필드 설정",
       "location": [
         "PivotTable Analyze",
         "Active Field"
@@ -3058,7 +3058,7 @@
       },
       "id": "range.fill",
       "label": "Fill Range With Input",
-      "labelKo": null,
+      "labelKo": "입력값으로 범위 채우기",
       "location": []
     },
     {
@@ -3067,7 +3067,7 @@
       },
       "id": "range.setValues",
       "label": "Set Values",
-      "labelKo": null,
+      "labelKo": "값 설정",
       "location": []
     },
     {
@@ -3076,7 +3076,7 @@
       },
       "id": "review.addToDictionary",
       "label": "Add to Dictionary",
-      "labelKo": null,
+      "labelKo": "사전에 추가",
       "location": []
     },
     {
@@ -3085,7 +3085,7 @@
       },
       "id": "review.allowEditRanges",
       "label": "Allow Edit Ranges…",
-      "labelKo": null,
+      "labelKo": "범위 편집 허용…",
       "location": [
         "Review",
         "Protect"
@@ -3097,7 +3097,7 @@
       },
       "id": "review.changeSpelling",
       "label": "Change",
-      "labelKo": null,
+      "labelKo": "변경",
       "location": []
     },
     {
@@ -3106,7 +3106,7 @@
       },
       "id": "review.checkAccessibility",
       "label": "Check Accessibility",
-      "labelKo": null,
+      "labelKo": "접근성 검사",
       "location": [
         "Review",
         "Accessibility"
@@ -3130,7 +3130,7 @@
       },
       "id": "review.deleteComment",
       "label": "Delete Comment",
-      "labelKo": null,
+      "labelKo": "댓글 삭제",
       "location": [
         "Review",
         "Comments"
@@ -3142,7 +3142,7 @@
       },
       "id": "review.newComment",
       "label": "New Comment",
-      "labelKo": null,
+      "labelKo": "새 댓글",
       "location": [
         "Review",
         "Comments"
@@ -3214,7 +3214,7 @@
       },
       "id": "review.replyComment",
       "label": "Reply",
-      "labelKo": null,
+      "labelKo": "답글",
       "location": []
     },
     {
@@ -3223,7 +3223,7 @@
       },
       "id": "review.resolveComment",
       "label": "Resolve Thread",
-      "labelKo": null,
+      "labelKo": "스레드 해결",
       "location": []
     },
     {
@@ -3244,7 +3244,7 @@
       },
       "id": "review.showComments",
       "label": "Show Comments",
-      "labelKo": null,
+      "labelKo": "댓글 표시",
       "location": [
         "Review",
         "Comments"
@@ -3280,7 +3280,7 @@
       },
       "id": "review.thesaurus",
       "label": "Thesaurus",
-      "labelKo": null,
+      "labelKo": "유의어 사전",
       "location": [
         "Review",
         "Proofing"
@@ -3292,7 +3292,7 @@
       },
       "id": "review.unprotectSheet",
       "label": "Unprotect Sheet",
-      "labelKo": null,
+      "labelKo": "시트 보호 해제",
       "location": [
         "Review",
         "Protect"
@@ -3304,7 +3304,7 @@
       },
       "id": "review.workbookStatistics",
       "label": "Workbook Statistics",
-      "labelKo": null,
+      "labelKo": "통합 문서 통계",
       "location": [
         "Review",
         "Proofing"
@@ -3316,7 +3316,7 @@
       },
       "id": "selection.column",
       "label": "Select Entire Column",
-      "labelKo": null,
+      "labelKo": "열 전체 선택",
       "location": []
     },
     {
@@ -3325,7 +3325,7 @@
       },
       "id": "selection.currentRegion",
       "label": "Select Current Region",
-      "labelKo": null,
+      "labelKo": "현재 영역 선택",
       "location": []
     },
     {
@@ -3334,7 +3334,7 @@
       },
       "id": "selection.move",
       "label": "Move Selection",
-      "labelKo": null,
+      "labelKo": "선택 영역 이동",
       "location": []
     },
     {
@@ -3343,7 +3343,7 @@
       },
       "id": "selection.next",
       "label": "Next Cell in Selection",
-      "labelKo": null,
+      "labelKo": "선택 영역의 다음 셀",
       "location": []
     },
     {
@@ -3352,7 +3352,7 @@
       },
       "id": "selection.row",
       "label": "Select Entire Row",
-      "labelKo": null,
+      "labelKo": "행 전체 선택",
       "location": []
     },
     {
@@ -3361,7 +3361,7 @@
       },
       "id": "selection.set",
       "label": "Select",
-      "labelKo": null,
+      "labelKo": "선택",
       "location": []
     },
     {
@@ -3370,7 +3370,7 @@
       },
       "id": "selection.stats",
       "label": "Selection Statistics",
-      "labelKo": null,
+      "labelKo": "선택 영역 통계",
       "location": []
     },
     {
@@ -3379,7 +3379,7 @@
       },
       "id": "shape.setText",
       "label": "Edit Text Box",
-      "labelKo": null,
+      "labelKo": "텍스트 상자 편집",
       "location": []
     },
     {
@@ -3388,7 +3388,7 @@
       },
       "id": "sheet.activate",
       "label": "Activate Sheet",
-      "labelKo": null,
+      "labelKo": "시트 활성화",
       "location": []
     },
     {
@@ -3397,7 +3397,7 @@
       },
       "id": "sheet.hide",
       "label": "Hide Sheet",
-      "labelKo": null,
+      "labelKo": "시트 숨기기",
       "location": [
         "Home",
         "Cells",
@@ -3411,7 +3411,7 @@
       },
       "id": "sheet.move",
       "label": "Move or Copy Sheet…",
-      "labelKo": null,
+      "labelKo": "시트 이동/복사…",
       "location": [
         "Home",
         "Cells",
@@ -3424,7 +3424,7 @@
       },
       "id": "sheet.moveColumns",
       "label": "Move Columns",
-      "labelKo": null,
+      "labelKo": "열 이동",
       "location": []
     },
     {
@@ -3433,7 +3433,7 @@
       },
       "id": "sheet.next",
       "label": "Next Sheet",
-      "labelKo": null,
+      "labelKo": "다음 시트",
       "location": []
     },
     {
@@ -3442,7 +3442,7 @@
       },
       "id": "sheet.previous",
       "label": "Previous Sheet",
-      "labelKo": null,
+      "labelKo": "이전 시트",
       "location": []
     },
     {
@@ -3451,7 +3451,7 @@
       },
       "id": "sheet.read",
       "label": "Read Range",
-      "labelKo": null,
+      "labelKo": "범위 읽기",
       "location": []
     },
     {
@@ -3460,7 +3460,7 @@
       },
       "id": "sheet.rename",
       "label": "Rename Sheet",
-      "labelKo": null,
+      "labelKo": "시트 이름 바꾸기",
       "location": [
         "Home",
         "Cells",
@@ -3473,7 +3473,7 @@
       },
       "id": "sheet.tabColor",
       "label": "Tab Color",
-      "labelKo": null,
+      "labelKo": "탭 색",
       "location": [
         "Home",
         "Cells",
@@ -3486,7 +3486,7 @@
       },
       "id": "sheet.unhide",
       "label": "Unhide Sheet…",
-      "labelKo": null,
+      "labelKo": "시트 숨기기 취소…",
       "location": [
         "Home",
         "Cells",
@@ -3500,7 +3500,7 @@
       },
       "id": "slicer.clear",
       "label": "Clear Slicer Filter",
-      "labelKo": null,
+      "labelKo": "슬라이서 필터 지우기",
       "location": []
     },
     {
@@ -3509,7 +3509,7 @@
       },
       "id": "slicer.delete",
       "label": "Delete Slicer",
-      "labelKo": null,
+      "labelKo": "슬라이서 삭제",
       "location": []
     },
     {
@@ -3518,7 +3518,7 @@
       },
       "id": "slicer.selectAll",
       "label": "Clear Slicer Filter",
-      "labelKo": null,
+      "labelKo": "슬라이서 필터 지우기",
       "location": []
     },
     {
@@ -3527,7 +3527,7 @@
       },
       "id": "slicer.toggle",
       "label": "Toggle Slicer Value",
-      "labelKo": null,
+      "labelKo": "슬라이서 값 전환",
       "location": []
     },
     {
@@ -3536,7 +3536,7 @@
       },
       "id": "table.bandedColumns",
       "label": "Banded Columns",
-      "labelKo": null,
+      "labelKo": "줄무늬 열",
       "location": [
         "Table",
         "Table Style Options"
@@ -3548,7 +3548,7 @@
       },
       "id": "table.bandedRows",
       "label": "Banded Rows",
-      "labelKo": null,
+      "labelKo": "줄무늬 행",
       "location": [
         "Table",
         "Table Style Options"
@@ -3560,7 +3560,7 @@
       },
       "id": "table.convertToRange",
       "label": "Convert to Range",
-      "labelKo": null,
+      "labelKo": "범위로 변환",
       "location": [
         "Table",
         "Tools"
@@ -3572,7 +3572,7 @@
       },
       "id": "table.firstColumn",
       "label": "First Column",
-      "labelKo": null,
+      "labelKo": "첫째 열",
       "location": [
         "Table",
         "Table Style Options"
@@ -3584,7 +3584,7 @@
       },
       "id": "table.headerRow",
       "label": "Header Row",
-      "labelKo": null,
+      "labelKo": "머리글 행",
       "location": [
         "Table",
         "Table Style Options"
@@ -3596,7 +3596,7 @@
       },
       "id": "table.insertSlicer",
       "label": "Insert Slicer",
-      "labelKo": null,
+      "labelKo": "슬라이서 삽입",
       "location": [
         "Table",
         "Tools"
@@ -3608,7 +3608,7 @@
       },
       "id": "table.lastColumn",
       "label": "Last Column",
-      "labelKo": null,
+      "labelKo": "마지막 열",
       "location": [
         "Table",
         "Table Style Options"
@@ -3620,7 +3620,7 @@
       },
       "id": "table.removeDuplicates",
       "label": "Remove Duplicates",
-      "labelKo": null,
+      "labelKo": "중복된 항목 제거",
       "location": [
         "Table Design",
         "Tools"
@@ -3632,7 +3632,7 @@
       },
       "id": "table.rename",
       "label": "Table Name",
-      "labelKo": null,
+      "labelKo": "표 이름",
       "location": [
         "Table",
         "Properties"
@@ -3644,7 +3644,7 @@
       },
       "id": "table.resize",
       "label": "Resize Table",
-      "labelKo": null,
+      "labelKo": "표 크기 조정",
       "location": [
         "Table Design",
         "Properties"
@@ -3656,7 +3656,7 @@
       },
       "id": "table.style",
       "label": "Table Styles",
-      "labelKo": null,
+      "labelKo": "표 스타일",
       "location": [
         "Table",
         "Table Styles"
@@ -3668,7 +3668,7 @@
       },
       "id": "table.summarizePivot",
       "label": "Summarize with PivotTable",
-      "labelKo": null,
+      "labelKo": "피벗 테이블로 요약",
       "location": [
         "Table Design",
         "Tools"
@@ -3680,7 +3680,7 @@
       },
       "id": "table.totalFunction",
       "label": "Totals Function",
-      "labelKo": null,
+      "labelKo": "요약 함수",
       "location": []
     },
     {
@@ -3689,7 +3689,7 @@
       },
       "id": "table.totalRow",
       "label": "Total Row",
-      "labelKo": null,
+      "labelKo": "요약 행",
       "location": [
         "Table",
         "Table Style Options"
@@ -3713,7 +3713,7 @@
       },
       "id": "view.arrangeAll",
       "label": "Arrange All",
-      "labelKo": null,
+      "labelKo": "모두 정렬",
       "location": [
         "View",
         "Window"
@@ -3725,7 +3725,7 @@
       },
       "id": "view.collapseRibbon",
       "label": "Collapse Ribbon",
-      "labelKo": null,
+      "labelKo": "리본 메뉴 축소",
       "location": []
     },
     {
@@ -3734,7 +3734,7 @@
       },
       "id": "view.customViews",
       "label": "Custom Views…",
-      "labelKo": null,
+      "labelKo": "사용자 지정 보기…",
       "location": [
         "View",
         "Workbook Views"
@@ -3830,7 +3830,7 @@
       },
       "id": "view.hideWindow",
       "label": "Hide",
-      "labelKo": null,
+      "labelKo": "숨기기",
       "location": [
         "View",
         "Window"
@@ -3842,7 +3842,7 @@
       },
       "id": "view.interfaceScale",
       "label": "Interface Size",
-      "labelKo": null,
+      "labelKo": "인터페이스 크기",
       "location": [
         "File",
         "Options"
@@ -3854,7 +3854,7 @@
       },
       "id": "view.macros",
       "label": "Macros",
-      "labelKo": null,
+      "labelKo": "매크로",
       "location": [
         "View",
         "Macros"
@@ -3866,7 +3866,7 @@
       },
       "id": "view.newWindow",
       "label": "New Window",
-      "labelKo": null,
+      "labelKo": "새 창",
       "location": [
         "View",
         "Window"
@@ -3890,7 +3890,7 @@
       },
       "id": "view.pageBreakPreview",
       "label": "Page Break Preview",
-      "labelKo": null,
+      "labelKo": "페이지 나누기 미리 보기",
       "location": [
         "View",
         "Workbook Views"
@@ -3938,7 +3938,7 @@
       },
       "id": "view.showZeros",
       "label": "Show Zeros",
-      "labelKo": null,
+      "labelKo": "0 값 표시",
       "location": []
     },
     {
@@ -3947,7 +3947,7 @@
       },
       "id": "view.split",
       "label": "Split",
-      "labelKo": null,
+      "labelKo": "나누기",
       "location": [
         "View",
         "Window"
@@ -3959,7 +3959,7 @@
       },
       "id": "view.switchWindows",
       "label": "Switch Windows",
-      "labelKo": null,
+      "labelKo": "창 전환",
       "location": [
         "View",
         "Window"
@@ -3971,7 +3971,7 @@
       },
       "id": "view.theme",
       "label": "Display Theme",
-      "labelKo": null,
+      "labelKo": "화면 테마",
       "location": [
         "File",
         "Options"
@@ -3996,7 +3996,7 @@
       },
       "id": "view.unhideWindow",
       "label": "Unhide…",
-      "labelKo": null,
+      "labelKo": "숨기기 취소…",
       "location": [
         "View",
         "Window"
@@ -4020,7 +4020,7 @@
       },
       "id": "view.zoom100",
       "label": "100%",
-      "labelKo": null,
+      "labelKo": "100%",
       "location": [
         "View",
         "Zoom"
@@ -4032,7 +4032,7 @@
       },
       "id": "view.zoomToSelection",
       "label": "Zoom to Selection",
-      "labelKo": null,
+      "labelKo": "선택 영역 확대/축소",
       "location": [
         "View",
         "Zoom"
@@ -4044,7 +4044,7 @@
       },
       "id": "window.activate",
       "label": "Switch Window",
-      "labelKo": null,
+      "labelKo": "창 전환",
       "location": [
         "Window"
       ]

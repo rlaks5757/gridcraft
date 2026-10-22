@@ -57,15 +57,8 @@ pub fn start() {
                     }
                     let mut app = SheetApp::new(session, services);
                     app.ui.system_theme = true;
-                    // Follow the browser's language, except a CJK one: the web build has no system
-                    // CJK fonts (none are bundled), so that interface would render as tofu.
-                    let browser = gridcraft_ui_egui::i18n::Language::system();
-                    if !matches!(
-                        browser,
-                        gridcraft_ui_egui::i18n::Language::Zh | gridcraft_ui_egui::i18n::Language::Ja | gridcraft_ui_egui::i18n::Language::Ko
-                    ) {
-                        app.ui.language = browser;
-                    }
+                    // The PPM build starts in Korean; the upstream one follows the browser (see `start_language`).
+                    app.ui.language = crate::gate::start_language(gridcraft_engine::hostlock::HOST_BUILD, gridcraft_ui_egui::i18n::Language::system());
                     SheetApp::setup_context_for_language(&cc.egui_ctx, false, app.ui.language);
                     if let Some(bridge) = &app_bridge {
                         if let Some(author) = query_param("author") {

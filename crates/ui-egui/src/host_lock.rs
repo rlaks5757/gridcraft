@@ -56,11 +56,12 @@ const APP_COMMANDS: &[(&str, &str, &[&str])] = &[
 
 /// The command list (`ppm/commands.json`, copied to `dist/web` by `ppm/build-web.sh`):
 /// `{ app, schema, commands }` with `{ id, label, labelKo, location, grades }` for every command,
-/// by id. `labelKo` is null where the app has no Korean text for the label.
+/// by id. `labelKo` is null where the app has no Korean text for the label; a label with no
+/// letters in it ("100%") reads the same in Korean.
 pub fn commands_json() -> String {
     let korean = |label: &str| {
         let ko = crate::i18n::Language::Ko.tr(label);
-        (ko != label).then(|| ko.to_string())
+        (ko != label || !label.chars().any(char::is_alphabetic)).then(|| ko.to_string())
     };
     let entry = |id: &str, label: &str, location: &[&str], grade: Option<Grade>| {
         serde_json::json!({
@@ -103,6 +104,15 @@ mod tests {
         }
         let have = std::fs::read_to_string(&path).unwrap_or_default();
         assert_eq!(have, want, "ppm/commands.json is out of date: run the tests with UPDATE_COMMANDS_JSON=1");
+    }
+
+    /// The PPM build starts in Korean, so the administrator screen needs a Korean label for every command.
+    #[test]
+    fn every_command_has_a_korean_label() {
+        let list: serde_json::Value = serde_json::from_str(&commands_json()).unwrap();
+        let missing: Vec<&str> =
+            list["commands"].as_array().unwrap().iter().filter(|c| c["labelKo"].as_str().is_none_or(str::is_empty)).filter_map(|c| c["id"].as_str()).collect();
+        assert!(missing.is_empty(), "commands without a Korean label: {missing:?}");
     }
 
     #[test]
