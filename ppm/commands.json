@@ -1399,7 +1399,7 @@
       },
       "id": "formulas.evaluate",
       "label": "Evaluate",
-      "labelKo": "계산",
+      "labelKo": "수식 계산",
       "location": []
     },
     {

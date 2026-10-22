@@ -222,7 +222,7 @@ pub fn color_palette(ui: &mut Ui, theme_colors: &[u32; 12], none_label: &str) ->
         });
         ui.data_mut(|d| d.remove_temp::<Option<(usize, usize)>>(pal_id));
     }
-    if ui.button(none_label).clicked() {
+    if ui.button(i18n::t(ui, none_label)).clicked() {
         picked = Some("none".to_string());
     }
     ui.label(egui::RichText::new(crate::i18n::t(ui, "Theme Colors")).small());
@@ -281,8 +281,8 @@ pub fn message_box(app: &mut SheetApp, ctx: &egui::Context) {
             ui.painter().circle_filled(r.center(), 16.0, Color32::from_rgb(0xF2, 0xC3, 0x2E));
             ui.painter().text(r.center(), Align2::CENTER_CENTER, "!", theme::ui_bold(20.0), Color32::WHITE);
             ui.vertical(|ui| {
-                ui.label(egui::RichText::new(lang.tr(&title)).strong());
-                ui.add(egui::Label::new(lang.tr(&msg)).wrap());
+                ui.label(egui::RichText::new(lang.tr_exact(&title)).strong());
+                ui.add(egui::Label::new(lang.tr_exact(&msg)).wrap());
             });
         });
         ui.add_space(8.0);
@@ -310,7 +310,7 @@ pub fn toast(app: &mut SheetApp, ctx: &egui::Context) {
         |ui| {
             egui::Frame::popup(ui.style()).show(ui, |ui| {
                 ui.set_max_width(320.0);
-                ui.label(app_lang.tr(&msg));
+                ui.label(app_lang.tr_exact(&msg));
             });
         },
     );
@@ -345,7 +345,7 @@ pub fn notice_bar(app: &mut SheetApp, ui: &mut Ui) {
                 border,
             );
             ui.add_space(6.0);
-            ui.label(egui::RichText::new(ui_lang.tr(&notice.text)).font(theme::ui_font(12.5)).color(t.text));
+            ui.label(egui::RichText::new(ui_lang.tr_exact(&notice.text)).font(theme::ui_font(12.5)).color(t.text));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if icon_button(ui, Icon::Close, t.text_dim, "Dismiss", vec2(20.0, 20.0)).clicked() {
                     dismiss = true;

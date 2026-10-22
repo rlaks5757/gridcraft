@@ -184,7 +184,7 @@ pub fn sheet_tabs(app: &mut SheetApp, ui: &mut Ui) {
                                     if ui.button(crate::i18n::t(ui, "Duplicate")).clicked() {
                                         app.run_or_alert("sheet.move", json!({"sheet": i, "to": i + 1, "copy": true}));
                                     }
-                                    ui.menu_button("Tab Color", |ui| {
+                                    ui.menu_button(crate::i18n::t(ui, "Tab Color"), |ui| {
                                         let colors = app.session.active().map(|d| d.wb.theme.colors).unwrap_or_default();
                                         if let Some(c) = crate::widgets::color_palette(ui, &colors, "No Color") {
                                             app.run_or_alert("sheet.tabColor", json!({"sheet": i, "color": c}));
@@ -250,7 +250,7 @@ pub fn status_bar(app: &mut SheetApp, ui: &mut Ui) {
                         ui.add_space(12.0);
                         let (si, c) = d.calc.circular[0];
                         let name = d.wb.sheet(si).map(|s| s.name.clone()).unwrap_or_default();
-                        ui.label(egui::RichText::new(app.ui.language.tr("Circular References: {name}!{}").replacen("{name}", &name, 1).replacen("{}", &c.a1(), 1)).font(theme::ui_font(12.5)).color(t.danger));
+                        ui.label(egui::RichText::new(app.ui.language.tr("Circular References: {name}!{}").replacen("{}", &c.a1(), 1).replacen("{name}", &name, 1)).font(theme::ui_font(12.5)).color(t.danger));
                     }
                     if app.session.clipboard.is_some() && app.editor.is_none() {
                         ui.add_space(12.0);

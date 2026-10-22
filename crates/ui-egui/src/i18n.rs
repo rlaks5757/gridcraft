@@ -117,7 +117,18 @@ impl Language {
     /// A label that needs two translations (Home's text "Orientation" vs Page Layout's print
     /// "Orientation") is keyed `context|label`: English shows only the part after the `|`.
     pub fn tr(self, text: &str) -> &str {
-        let translated = match self {
+        self.lookup(text).unwrap_or_else(|| text.rsplit_once('|').map_or(text, |(_, label)| label))
+    }
+
+    /// Like [`tr`](Self::tr) for text that may already have data filled in (a URL, a sheet name, a
+    /// file name): a catalog entry is translated, anything else comes back untouched, so a `|`
+    /// in the data is never taken for a `context|label` separator.
+    pub fn tr_exact(self, text: &str) -> &str {
+        self.lookup(text).unwrap_or(text)
+    }
+
+    fn lookup(self, text: &str) -> Option<&str> {
+        match self {
             Self::En => None,
             Self::Es => es::translate(text),
             Self::Ja => JAPANESE.iter().find(|(english, _)| *english == text).map(|(_, translated)| *translated),
@@ -129,8 +140,7 @@ impl Language {
             Self::Cs => cs::translate(text),
             Self::Fr => fr::translate(text),
             Self::Sr => sr::translate(text),
-        };
-        translated.unwrap_or_else(|| text.rsplit_once('|').map_or(text, |(_, label)| label))
+        }
     }
 }
 
@@ -737,5 +747,20 @@ mod tests {
             checked += 1;
         }
         assert!(checked > 500, "only {checked} Korean entries were parsed");
+    }
+}
+
+#[cfg(test)]
+mod exact_tests {
+    use super::*;
+
+    #[test]
+    fn filled_in_text_keeps_its_pipes_but_catalog_entries_still_translate() {
+        let filled = "Sheets: a|b";
+        for lang in Language::ALL {
+            assert_eq!(lang.tr_exact(filled), filled);
+        }
+        assert_eq!(Language::En.tr("Sheet Options|View"), "View");
+        assert_eq!(Language::Ko.tr_exact("Close"), Language::Ko.tr("Close"));
     }
 }

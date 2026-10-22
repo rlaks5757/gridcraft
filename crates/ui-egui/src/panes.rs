@@ -189,7 +189,7 @@ fn format_chart(app: &mut SheetApp, ui: &mut Ui) {
                 ("Scatter", "scatter", ""),
                 ("Radar", "radar", ""),
             ] {
-                if ui.button(l).clicked() {
+                if ui.button(crate::i18n::t(ui, l)).clicked() {
                     app.run_or_alert("chart.set", json!({"chart": id, "type": k, "subtype": s}));
                 }
             }
@@ -240,7 +240,7 @@ fn format_chart(app: &mut SheetApp, ui: &mut Ui) {
                 ui.painter().rect_filled(r, 2.0, col);
                 ui.label(&name);
                 ui.label(egui::RichText::new(&s.values).small().color(Color32::from_gray(110)));
-                ui.menu_button("Fill…", |ui| {
+                ui.menu_button(crate::i18n::t(ui, "Fill…"), |ui| {
                     if let Some(c) = crate::widgets::color_palette(ui, &theme.colors, "Automatic") {
                         app.run_or_alert(
                             "chart.formatSelection",

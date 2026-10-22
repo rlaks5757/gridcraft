@@ -1038,7 +1038,7 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
         "solver" => 460.0,
         _ => 380.0,
     };
-    let window = egui::Window::new(app.ui.language.tr(&d.title))
+    let window = egui::Window::new(app.ui.language.tr_exact(&d.title))
         .id(egui::Id::new("dialog").with(&d.name))
         .collapsible(false)
         .resizable(false)
@@ -1462,17 +1462,17 @@ fn form_fields(ui: &mut egui::Ui, d: &mut Dialog) {
                         ui.label(egui::RichText::new(lang.tr(label)).strong());
                         let cur = d.values.get(key).and_then(Json::as_str).unwrap_or("").to_string();
                         if d.name == "dataValidation" {
-                            let selected = options.iter().find(|(val, _)| *val == cur).map(|(_, text)| lang.tr(text)).unwrap_or("");
+                            let selected = options.iter().find(|(val, _)| *val == cur).map(|(_, text)| lang.tr_exact(text)).unwrap_or("");
                             egui::ComboBox::from_id_salt(("dataValidation", key)).selected_text(selected).width(300.0).show_ui(ui, |ui| {
                                 for (val, text) in options {
-                                    if ui.selectable_label(cur == val, lang.tr(text)).clicked() {
+                                    if ui.selectable_label(cur == val, lang.tr_exact(text)).clicked() {
                                         d.set_value(key, json!(val));
                                     }
                                 }
                             });
                         } else {
                             for (val, text) in options {
-                                if ui.radio(cur == val, lang.tr(text)).clicked() {
+                                if ui.radio(cur == val, lang.tr_exact(text)).clicked() {
                                     d.set_value(key, json!(val));
                                 }
                             }
@@ -1486,7 +1486,7 @@ fn form_fields(ui: &mut egui::Ui, d: &mut Dialog) {
                     }
                 }
                 Field::Note(t) => {
-                    ui.label(egui::RichText::new(lang.tr(&t)).small());
+                    ui.label(egui::RichText::new(lang.tr_exact(&t)).small());
                 }
             }
             ui.end_row();
@@ -2284,7 +2284,7 @@ fn command_search(app: &mut SheetApp, ui: &mut egui::Ui, d: &mut Dialog, confirm
         .into_iter()
         .filter(|c| c.enabled)
         .filter(|c| q.is_empty() || c.label.to_ascii_lowercase().contains(&q) || lang.tr(c.label).to_lowercase().contains(&q) || c.id.to_ascii_lowercase().contains(&q))
-        .map(|c| (c.id.to_string(), c.label.to_string(), c.menu.join(" › ")))
+        .map(|c| (c.id.to_string(), c.label.to_string(), c.menu.iter().map(|p| lang.tr(p)).collect::<Vec<_>>().join(" › ")))
         .take(40)
         .collect();
     if ui.input(|i| i.key_pressed(Key::ArrowDown)) {

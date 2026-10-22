@@ -449,3 +449,18 @@ fn the_interface_language_is_fixed_when_locked() {
     open.state_mut().run("app.language.set", json!({"language": "de"})).unwrap();
     assert_eq!(open.state().ui.language, Language::De);
 }
+
+/// A filled-in text (a link, a sheet name) is shown as it is: a `|` in it is not a `context|label`
+/// separator, in English or Korean.
+#[test]
+fn a_pipe_in_the_link_to_confirm_is_shown_whole() {
+    use gridcraft_ui_egui::i18n::Language;
+    let url = "https://evil.example/?a|https://trusted.example";
+    for language in [Language::En, Language::Ko] {
+        let mut h = harness(false, Services::default());
+        h.state_mut().ui.language = language;
+        h.state_mut().open_dialog("openLink", json!({"url": url}));
+        h.run_steps(4);
+        assert!(h.query_by_label_contains(url).is_some(), "{language:?}: the whole address is shown");
+    }
+}

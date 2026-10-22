@@ -90,7 +90,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                     ui.label(crate::i18n::t(ui, "Can't Undo"));
                 }
                 for (i, l) in labels.iter().enumerate() {
-                    if ui.button(app.ui.language.tr("Undo {l}").replacen("{l}", l, 1)).clicked() {
+                    if ui.button(app.ui.language.tr("Undo {l}").replacen("{l}", app.ui.language.tr(l), 1)).clicked() {
                         app.run_or_alert("edit.undo", json!({"steps": i + 1}));
                     }
                 }
@@ -107,7 +107,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                     ("Sort A to Z", "data.sortAscending"),
                     ("Calculate Now", "formulas.calculateNow"),
                 ] {
-                    if app.allowed(id) && ui.button(label).clicked() {
+                    if app.allowed(id) && ui.button(crate::i18n::t(ui, label)).clicked() {
                         app.run_or_alert(id, json!({}));
                     }
                 }
@@ -145,7 +145,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                             app.run_or_alert("file.exportPdf", json!({}));
                         }
                         for (label, fmt, id) in copies {
-                            if app.allowed(id) && ui.button(label).clicked() {
+                            if app.allowed(id) && ui.button(crate::i18n::t(ui, label)).clicked() {
                                 if !app.host_locked() {
                                     app.open_dialog("saveCopy", json!({"format": fmt}));
                                 } else if fmt == "xlsx" {
@@ -1144,7 +1144,7 @@ fn number_combo(app: &mut SheetApp, ui: &mut Ui, st: &Style) {
     let current = format!("{kind:?}");
     let lang = app.ui.language;
     let sample = app.session.active().and_then(|d| d.wb.active().map(|sh| sh.value(d.selection.active))).unwrap_or_default();
-    let resp = ui.add_sized([150.0, 24.0], egui::Button::new(egui::RichText::new(lang.tr(&current)).font(theme::ui_font(12.5))));
+    let resp = ui.add_sized([150.0, 24.0], egui::Button::new(egui::RichText::new(lang.tr_exact(&current)).font(theme::ui_font(12.5))));
     control_keytip(app, ui, &resp, "home.numberFormat");
     let forced = invoke(app, "home.numberFormat");
     let names = ["General", "Number", "Currency", "Accounting", "Short Date", "Long Date", "Time", "Percentage", "Fraction", "Scientific", "Text"];
@@ -1166,9 +1166,9 @@ fn number_combo(app: &mut SheetApp, ui: &mut Ui, st: &Style) {
 }
 
 fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
-    ui.menu_button("Highlight Cells Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Highlight Cells Rules"), |ui| {
         for (label, op) in [("Greater Than…", "greater"), ("Less Than…", "less"), ("Between…", "between"), ("Equal To…", "equal")] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 app.open_dialog("cfQuick", json!({"type": "cellIs", "operator": op, "title": label}));
             }
         }
@@ -1182,7 +1182,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             act(app, "home.conditionalFormat", json!({"rule": {"type": "duplicate"}}));
         }
     });
-    ui.menu_button("Top/Bottom Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Top/Bottom Rules"), |ui| {
         menu_items(
             app,
             ui,
@@ -1196,16 +1196,16 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    ui.menu_button("Data Bars", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Data Bars"), |ui| {
         for (label, c) in
             [("Blue", "#638EC6"), ("Green", "#63BE7B"), ("Red", "#F8696B"), ("Orange", "#FFB628"), ("Light Blue", "#008AEF"), ("Purple", "#D6007B")]
         {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "dataBar", "color": c}}));
             }
         }
     });
-    ui.menu_button("Color Scales", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Color Scales"), |ui| {
         for (label, cols) in [
             ("Green - Yellow - Red", vec!["#63BE7B", "#FFEB84", "#F8696B"]),
             ("Red - Yellow - Green", vec!["#F8696B", "#FFEB84", "#63BE7B"]),
@@ -1214,12 +1214,12 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ("White - Green", vec!["#FCFCFF", "#63BE7B"]),
             ("White - Red", vec!["#FCFCFF", "#F8696B"]),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "colorScale", "colors": cols}}));
             }
         }
     });
-    ui.menu_button("Icon Sets", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Icon Sets"), |ui| {
         for (label, set) in [
             ("3 Arrows", "3Arrows"),
             ("3 Traffic Lights", "3TrafficLights1"),
@@ -1228,7 +1228,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ("5 Arrows", "5Arrows"),
             ("5 Quarters", "5Quarters"),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "iconSet", "set": set}}));
             }
         }
@@ -1237,7 +1237,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
     if ui.button(crate::i18n::t(ui, "New Rule…")).clicked() {
         app.open_dialog("cfQuick", json!({"type": "expression", "title": "New Formatting Rule"}));
     }
-    ui.menu_button("Clear Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Clear Rules"), |ui| {
         menu_items(
             app,
             ui,
@@ -1412,7 +1412,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
         pic.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Pictures"));
         egui::Popup::menu(&pic).show(|ui| {
             for (label, placement) in [("Place in Cell", "cell"), ("Place over Cells", "overCells")] {
-                if ui.button(label).clicked() {
+                if ui.button(crate::i18n::t(ui, label)).clicked() {
                     app.open_dialog("insertPicture", json!({"placement": placement}));
                     ui.close();
                 }
@@ -1431,7 +1431,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
             ("Arrow", "arrow"),
             ("Text Box", "textBox"),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "insert.shape", json!({"kind": kind}));
             }
         }
@@ -1503,7 +1503,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
                 let forced_c = invoke(app, cid);
                 egui::Popup::menu(&r).open_memory(popup_command(forced_c, r.clicked())).show(|ui| {
                     for (label, k, s) in &subs {
-                        if ui.button(*label).clicked() {
+                        if ui.button(crate::i18n::t(ui, label)).clicked() {
                             act(app, "insert.chart", json!({"type": k, "subtype": s}));
                         }
                     }
@@ -1539,7 +1539,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
                 let forced_c = invoke(app, cid);
                 egui::Popup::menu(&r).open_memory(popup_command(forced_c, r.clicked())).show(|ui| {
                     for (label, k, s) in &subs {
-                        if ui.button(*label).clicked() {
+                        if ui.button(crate::i18n::t(ui, label)).clicked() {
                             act(app, "insert.chart", json!({"type": k, "subtype": s}));
                         }
                     }
@@ -1556,7 +1556,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
     anchor_keytip(app, ui, &sp, &["dialog:sparkline"]);
     egui::Popup::menu(&sp).show(|ui| {
         for (label, kind) in [("Line", "line"), ("Column", "column"), ("Win/Loss", "winLoss")] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 app.open_dialog("sparkline", json!({"type": kind}));
             }
         }
@@ -2417,7 +2417,7 @@ fn chart_design(app: &mut SheetApp, ui: &mut Ui) {
             ("Funnel", "funnel", ""),
             ("Treemap", "treemap", ""),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "chart.set", json!({"chart": id, "type": k, "subtype": s}));
             }
         }
