@@ -406,6 +406,30 @@ fn the_data_commands_are_one_switch_and_plumbing_ignores_the_policy() {
             assert!(h.state_mut().run(id, json!({"text": "a\n1\n"})).is_err(), "{id} with {off} off");
         }
         assert!(h.state().allowed("ui.ribbonTab") && h.state().allowed("ui.dialog"));
+        // The button and the dialog follow: neither survives when either command is off.
+        assert!(!h.state().allowed("data.getData") && h.state().switched_off("data.getData"), "{off}");
+        h.state_mut().open_dialog("importData", json!({}));
+        h.run_steps(2);
+        assert!(h.state().dialog.is_none(), "{off}");
         assert!(h.state_mut().run("ui.ribbonTab", json!({"tab": "Insert"})).is_ok());
     }
+}
+
+#[test]
+fn save_as_with_the_command_off_sends_what_save_sends() {
+    // Save has no file to write to in the locked web app, so it asks for the same dialog Ctrl+Shift+S
+    // opens: the workbook as xlsx under its own name. Both must hand the host the same thing.
+    let downloads = Downloads::default();
+    let mut h = harness(true, Services { download: Some(Box::new({
+        let downloads = downloads.clone();
+        move |name, bytes| downloads.lock().unwrap().push(format!("{name}:{}", bytes.len()))
+    })), ..Default::default() });
+    h.state_mut().run_or_alert("file.save", json!({}));
+    h.run_steps(2);
+    h.state_mut().open_dialog("saveAs", json!({}));
+    h.run_steps(2);
+    let got = downloads.lock().unwrap().clone();
+    assert_eq!(got.len(), 2, "{got:?}");
+    assert_eq!(got[0], got[1], "Save As (off) and Save send the same file under the same name");
+    assert!(got[0].contains(".xlsx:"), "{got:?}");
 }

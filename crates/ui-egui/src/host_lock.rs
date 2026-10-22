@@ -28,6 +28,10 @@ pub fn enabled(policy: Option<&Policy>, id: &str) -> bool {
     if crate::UI_COMMANDS_PLUMBING.contains(&id) {
         return true;
     }
+    // Getting data is one feature with two commands: both must be on (as in the engine).
+    if matches!(id, "data.getData" | "data.fromTextCsv") {
+        return policy.is_none_or(|p| ["data.getData", "data.fromTextCsv"].iter().all(|c| p.enabled(c, Grade::On)));
+    }
     match policy {
         None => true,
         Some(p) => {
