@@ -1305,7 +1305,6 @@ impl SheetApp {
             });
         }
         dialogs::show(self, &ctx);
-        self.forward_urls(&ctx);
         widgets::message_box(self, &ctx);
         widgets::toast(self, &ctx);
         control::issue_screenshots(self, &ctx);
@@ -1313,6 +1312,8 @@ impl SheetApp {
         if !ctx.input(|i| i.focused) {
             // Nothing else to do.
         }
+        // Last, so a link anything drew this frame is caught.
+        self.forward_urls(&ctx);
         let now = now_ms();
         self.perf.frame_ms = now - t0;
         if self.perf.last > 0.0 {

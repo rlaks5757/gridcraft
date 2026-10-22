@@ -442,6 +442,12 @@ fn export_command(format: &str) -> Option<&'static str> {
     }
 }
 
+/// The two commands that bring data in are one feature (the same code runs both): switching
+/// either one off turns both off.
+fn data_import_on(policy: &Policy) -> bool {
+    policy.enabled("data.getData", Grade::On) && policy.enabled("data.fromTextCsv", Grade::On)
+}
+
 /// Whether a session locked with `policy` (`None`: not locked) may run `id` with `params`.
 /// Unclassified ids are refused.
 pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
@@ -451,7 +457,7 @@ pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
         // A workbook the parent sent arrives as bytes; no path, no picker.
         "file.open" => has("base64") && !has("path"),
         // Data goes into the open workbook as text the app read; a path would read a local file.
-        "data.fromTextCsv" | "data.getData" => policy.enabled(id, Grade::On) && !has("path"),
+        "data.fromTextCsv" | "data.getData" => data_import_on(policy) && !has("path"),
         // Save hands the xlsx to the parent; a path would pick a file (and its extension a format).
         "file.save" => policy.enabled(id, Grade::On) && (!has("path") || policy.enabled("file.saveAs", Grade::Off)),
         "file.saveBytes" => {
@@ -465,7 +471,7 @@ pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
 pub fn listed(policy: Option<&Policy>, id: &str) -> bool {
     match policy {
         None => true,
-        Some(p) => id != "file.open" && grade(id).is_some_and(|g| p.enabled(id, g)),
+        Some(p) => permits(Some(p), id, &Json::Null) && id != "file.open",
     }
 }
 
@@ -555,8 +561,12 @@ mod tests {
             let e = s.execute(id, json!({"path": "/etc/hosts"})).unwrap_err().to_string();
             assert!(e.contains(BLOCKED_TEXT), "{id}");
         }
-        s.set_policy(&[("data.getData".to_string(), false)]);
-        assert!(s.execute("data.getData", json!({"text": "a\n"})).unwrap_err().to_string().contains(BLOCKED_TEXT));
+        for off in ["data.getData", "data.fromTextCsv"] {
+            s.set_policy(&[(off.to_string(), false)]);
+            for id in ["data.getData", "data.fromTextCsv"] {
+                assert!(s.execute(id, json!({"text": "a\n"})).unwrap_err().to_string().contains(BLOCKED_TEXT), "{id} with {off} off");
+            }
+        }
     }
 
     #[test]

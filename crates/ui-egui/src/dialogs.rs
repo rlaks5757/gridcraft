@@ -1190,8 +1190,9 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
                         d.picture_inbox = None;
                         match String::from_utf8(bytes) {
                             Ok(text) if text.len() <= 16 * 1024 * 1024 => {
-                                let delimiter = if name.to_ascii_lowercase().ends_with(".tsv") { "\t" } else { "," };
-                                app.run_or_alert("data.getData", json!({"text": text, "delimiter": delimiter}));
+                                // Only .tsv names its delimiter; the engine reads the rest by its first line.
+                                let params = if name.to_ascii_lowercase().ends_with(".tsv") { json!({"text": text, "delimiter": "\t"}) } else { json!({"text": text}) };
+                                app.run_or_alert("data.getData", params);
                                 open = false;
                             }
                             _ => app.message = Some((d.title.clone(), "Choose a CSV, TSV or JSON text file no larger than 16 MB.".into())),

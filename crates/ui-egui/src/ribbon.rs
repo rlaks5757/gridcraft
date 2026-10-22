@@ -146,7 +146,14 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                         }
                         for (label, fmt, id) in copies {
                             if app.allowed(id) && ui.button(label).clicked() {
-                                app.open_dialog("saveCopy", json!({"format": fmt}));
+                                if !app.host_locked() {
+                                    app.open_dialog("saveCopy", json!({"format": fmt}));
+                                } else if fmt == "xlsx" {
+                                    // No file picker here: the workbook goes to the host as in Save As.
+                                    app.open_dialog("saveAs", json!({}));
+                                } else {
+                                    crate::backstage::export_as(app, fmt);
+                                }
                             }
                         }
                     });
@@ -211,15 +218,17 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                             let ul = Rect::from_center_size(pos2(r.center().x, r.bottom() - 3.0), vec2(tw.clamp(20.0, 40.0), 3.0));
                             ui.painter().rect_filled(ul, 1.5, t.accent);
                         }
+                        // Host lock: collapsing the ribbon is a command the administrator can switch off.
+                        let can_collapse = app.allowed("view.collapseRibbon");
                         if resp.clicked() {
                             if active && !collapsed {
-                                app.ui.ribbon_collapsed = true;
+                                app.ui.ribbon_collapsed = !can_collapse;
                             } else {
                                 app.ui.ribbon_tab = tab.to_string();
                                 app.ui.ribbon_collapsed = false;
                             }
                         }
-                        if resp.double_clicked() {
+                        if resp.double_clicked() && (can_collapse || collapsed) {
                             app.ui.ribbon_collapsed = !collapsed;
                         }
                         if app.keytips.prefix() == Some("")

@@ -386,3 +386,26 @@ fn the_save_as_and_export_pages_offer_only_the_formats_that_are_on() {
     assert!(h.query_by_label_contains("CSV (Comma delimited)").is_some());
     assert!(h.query_by_label_contains("Web Page").is_none() && h.query_by_label_contains("Create PDF").is_none());
 }
+
+#[test]
+fn share_menu_exports_reach_the_host() {
+    let downloads = Downloads::default();
+    let mut h = harness_with(true, &[("file.exportCsv", true), ("file.exportHtml", true), ("view.collapseRibbon", false)], counting(&Arc::default(), &downloads, Inbox::default()));
+    // The Share menu's path: no save picker in the locked web app, so the file goes to the host.
+    h.state_mut().services.pick_save = None;
+    assert!(gridcraft_ui_egui::backstage::export_as(h.state_mut(), "csv"));
+    assert!(gridcraft_ui_egui::backstage::export_as(h.state_mut(), "html"));
+    assert_eq!(downloads.lock().unwrap().len(), 2, "{:?}", downloads.lock().unwrap());
+}
+
+#[test]
+fn the_data_commands_are_one_switch_and_plumbing_ignores_the_policy() {
+    for off in ["data.getData", "data.fromTextCsv"] {
+        let mut h = harness_with(true, &[(off, false), ("ui.ribbonTab", false), ("ui.dialog", false)], Services::default());
+        for id in ["data.getData", "data.fromTextCsv"] {
+            assert!(h.state_mut().run(id, json!({"text": "a\n1\n"})).is_err(), "{id} with {off} off");
+        }
+        assert!(h.state().allowed("ui.ribbonTab") && h.state().allowed("ui.dialog"));
+        assert!(h.state_mut().run("ui.ribbonTab", json!({"tab": "Insert"})).is_ok());
+    }
+}

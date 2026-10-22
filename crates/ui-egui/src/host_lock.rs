@@ -24,6 +24,10 @@ fn switch(id: &str) -> &str {
 
 /// Is `id` on for a session locked with `policy` (`None`: not locked)?
 pub fn enabled(policy: Option<&Policy>, id: &str) -> bool {
+    // The app's plumbing works whatever the policy says.
+    if crate::UI_COMMANDS_PLUMBING.contains(&id) {
+        return true;
+    }
     match policy {
         None => true,
         Some(p) => {
