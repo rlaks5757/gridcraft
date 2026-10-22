@@ -2254,6 +2254,10 @@ fn view(app: &mut SheetApp, ui: &mut Ui) {
     });
     // Interface language: settings live in the View tab, like Excel's Options. The label follows
     // the current language so it stays readable; the choices are always shown in their own script.
+    // The PPM build is always Korean: no choice to show.
+    if app.host_locked() {
+        return;
+    }
     ui.vertical(|ui| {
         ui.label(egui::RichText::new(lang.tr("Interface language")).font(theme::ui_font(11.5)).color(t.text_dim));
         egui::ComboBox::from_id_salt("ui_language").width(120.0).selected_text(egui::RichText::new(lang.name()).font(theme::ui_font(12.5))).show_ui(

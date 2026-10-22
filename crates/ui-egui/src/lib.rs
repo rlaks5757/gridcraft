@@ -723,6 +723,10 @@ impl SheetApp {
 
     /// UI-only commands (dialogs, view toggles that aren't saved in the file).
     fn run_ui_command(&mut self, id: &str, p: &Json) -> Option<Result<Json, String>> {
+        // The PPM build is always Korean: the language cannot be changed.
+        if self.host_locked() && matches!(id, "app.language.set" | "app.language.english" | "app.language.japanese") {
+            return Some(Err("the interface language is fixed to Korean in PPM".into()));
+        }
         let r = match id {
             "ui.printSettings" => printing::settings(&mut self.printing, p, self.services.printers.as_ref()),
             "ui.printSubmit" => self.submit_print(p.clone()),

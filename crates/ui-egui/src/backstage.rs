@@ -964,15 +964,18 @@ fn options(app: &mut SheetApp, ui: &mut Ui) {
             }
         });
         ui.end_row();
-        ui.label(lang.tr("Interface language"));
-        egui::ComboBox::from_id_salt("backstage_language").width(160.0).selected_text(lang.name()).show_ui(ui, |ui| {
-            for l in i18n::Language::ALL {
-                if ui.selectable_label(l == lang, l.name()).clicked() {
-                    app.run_or_alert("app.language.set", json!({"language": l.code()}));
+        // The PPM build is always Korean: no choice to show.
+        if !app.host_locked() {
+            ui.label(lang.tr("Interface language"));
+            egui::ComboBox::from_id_salt("backstage_language").width(160.0).selected_text(lang.name()).show_ui(ui, |ui| {
+                for l in i18n::Language::ALL {
+                    if ui.selectable_label(l == lang, l.name()).clicked() {
+                        app.run_or_alert("app.language.set", json!({"language": l.code()}));
+                    }
                 }
-            }
-        });
-        ui.end_row();
+            });
+            ui.end_row();
+        }
     });
     ui.add_space(6.0);
     let mut formula_bar = app.session.prefs.formula_bar;

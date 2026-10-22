@@ -433,3 +433,19 @@ fn save_as_with_the_command_off_sends_what_save_sends() {
     assert_eq!(got[0], got[1], "Save As (off) and Save send the same file under the same name");
     assert!(got[0].contains(".xlsx:"), "{got:?}");
 }
+
+/// The PPM build is always Korean: the language commands refuse, so a stored `en` or a menu
+/// choice cannot change it. The unlocked app still switches.
+#[test]
+fn the_interface_language_is_fixed_when_locked() {
+    use gridcraft_ui_egui::i18n::Language;
+    let (mut h, ..) = locked_harness();
+    h.state_mut().ui.language = Language::Ko;
+    for (id, params) in [("app.language.set", json!({"language": "en"})), ("app.language.english", json!({})), ("app.language.japanese", json!({}))] {
+        assert!(h.state_mut().run(id, params).is_err(), "{id}");
+        assert_eq!(h.state().ui.language, Language::Ko, "{id}");
+    }
+    let mut open = harness(false, Services::default());
+    open.state_mut().run("app.language.set", json!({"language": "de"})).unwrap();
+    assert_eq!(open.state().ui.language, Language::De);
+}
