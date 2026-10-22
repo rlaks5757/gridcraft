@@ -166,7 +166,8 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                 out.close = true;
             }
             ui.add_space(10.0);
-            // Host lock: the host owns the files, so no Home/New/Open, Save As, Print or Export.
+            // Host lock: the host owns the files, so no Home/New/Open; Save As, Print and Export only
+            // with their commands on.
             let locked = app.host_locked();
             for page in [Page::Home, Page::New, Page::Open].into_iter().filter(|_| !locked) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
@@ -182,7 +183,7 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
             if nav_item(ui, Icon::Save, lang.tr("Save"), false, nav_text, nav_sel).clicked() {
                 save(app, &mut out);
             }
-            for page in [Page::SaveAs, Page::Print, Page::Export].into_iter().filter(|_| !locked) {
+            for page in [Page::SaveAs, Page::Print, Page::Export].into_iter().filter(|p| app.page_allowed(*p)) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
                     out.page = Some(page);
                 }

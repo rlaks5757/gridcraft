@@ -1,0 +1,4117 @@
+{
+  "app": "grid",
+  "commands": [
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "app.commands",
+      "label": "List Commands",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "app.language.english",
+      "label": "app.language.english",
+      "labelKo": null,
+      "location": [
+        "App"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "app.language.japanese",
+      "label": "app.language.japanese",
+      "labelKo": null,
+      "location": [
+        "App"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "app.language.set",
+      "label": "app.language.set",
+      "labelKo": null,
+      "location": [
+        "App"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.align",
+      "label": "Align",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.bringForward",
+      "label": "Bring Forward",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.group",
+      "label": "Group",
+      "labelKo": "그룹",
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.rotate",
+      "label": "Rotate",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.selectionPane",
+      "label": "Selection Pane",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "arrange.sendBackward",
+      "label": "Send Backward",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Arrange"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "automate.allScripts",
+      "label": "All Scripts",
+      "labelKo": null,
+      "location": [
+        "Automate",
+        "Scripting Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "automate.deleteScript",
+      "label": "Delete Script",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "automate.newScript",
+      "label": "New Script",
+      "labelKo": null,
+      "location": [
+        "Automate",
+        "Scripting Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "automate.recordActions",
+      "label": "Record Actions",
+      "labelKo": null,
+      "location": [
+        "Automate",
+        "Scripting Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "automate.runScript",
+      "label": "Run Script",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "cell.get",
+      "label": "Get Cell",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "cell.set",
+      "label": "Enter Cell",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "cell.toggleCheckbox",
+      "label": "Toggle Checkbox",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.addElement",
+      "label": "Add Chart Element",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Chart Layouts"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.changeColors",
+      "label": "Change Colors",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Chart Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.changeType",
+      "label": "Change Chart Type…",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Type"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.delete",
+      "label": "Delete Chart",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.formatSelection",
+      "label": "Format Selection",
+      "labelKo": null,
+      "location": [
+        "Format",
+        "Current Selection"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.move",
+      "label": "Move Chart…",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Location"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.quickLayout",
+      "label": "Quick Layout",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Chart Layouts"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.selectData",
+      "label": "Select Data…",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.set",
+      "label": "Chart Properties",
+      "labelKo": null,
+      "location": [
+        "Chart Design"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.shapeFill",
+      "label": "Shape Fill",
+      "labelKo": null,
+      "location": [
+        "Format",
+        "Shape Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.shapeOutline",
+      "label": "Shape Outline",
+      "labelKo": null,
+      "location": [
+        "Format",
+        "Shape Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "chart.switchRowColumn",
+      "label": "Switch Row/Column",
+      "labelKo": null,
+      "location": [
+        "Chart Design",
+        "Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.advancedFilter",
+      "label": "Advanced…",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.analysisToolPak",
+      "label": "Data Analysis…",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Analysis"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.circleInvalid",
+      "label": "Circle Invalid Data",
+      "labelKo": "잘못된 데이터 표시",
+      "location": [
+        "Data",
+        "Data Tools",
+        "Data Validation"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.clearFilter",
+      "label": "Clear",
+      "labelKo": "지우기",
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.consolidate",
+      "label": "Consolidate…",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Data Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.dataTable",
+      "label": "Data Table…",
+      "labelKo": "데이터 표…",
+      "location": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.filter",
+      "label": "Filter",
+      "labelKo": "필터",
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.filterBy",
+      "label": "Filter Column",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.flashFill",
+      "label": "Flash Fill",
+      "labelKo": "빠른 채우기",
+      "location": [
+        "Data",
+        "Data Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.forecastSheet",
+      "label": "Forecast Sheet",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Forecast"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.fromTableRange",
+      "label": "From Table/Range",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Get & Transform Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "data.fromTextCsv",
+      "label": "From Text/CSV",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Get & Transform Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "data.getData",
+      "label": "Get Data",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Get & Transform Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.goalSeek",
+      "label": "Goal Seek…",
+      "labelKo": "목표값 찾기…",
+      "location": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.group",
+      "label": "Group",
+      "labelKo": "그룹",
+      "location": [
+        "Data",
+        "Outline"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.hideDetail",
+      "label": "Hide Detail",
+      "labelKo": "세부 정보 숨기기",
+      "location": [
+        "Data",
+        "Outline"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.queriesConnections",
+      "label": "Queries & Connections",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Queries & Connections"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.reapply",
+      "label": "Reapply",
+      "labelKo": "다시 적용",
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.refreshAll",
+      "label": "Refresh All",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Queries & Connections"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.removeDuplicates",
+      "label": "Remove Duplicates",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Data Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.scenarioAdd",
+      "label": "Add Scenario",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.scenarioDelete",
+      "label": "Delete Scenario",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.scenarioManager",
+      "label": "Scenario Manager…",
+      "labelKo": "시나리오 관리자…",
+      "location": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.scenarioShow",
+      "label": "Show Scenario",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.scenarioSummary",
+      "label": "Scenario Summary",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.showDetail",
+      "label": "Show Detail",
+      "labelKo": "세부 정보 표시",
+      "location": [
+        "Data",
+        "Outline"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.showLevels",
+      "label": "Show Outline Levels",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.solver",
+      "label": "Solver…",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Analysis"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.solverReport",
+      "label": "Solver Reports",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.sort",
+      "label": "Sort…",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.sortAscending",
+      "label": "Sort A to Z",
+      "labelKo": "오름차순 정렬",
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.sortDescending",
+      "label": "Sort Z to A",
+      "labelKo": "내림차순 정렬",
+      "location": [
+        "Data",
+        "Sort & Filter"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.subtotal",
+      "label": "Subtotal",
+      "labelKo": "부분합",
+      "location": [
+        "Data",
+        "Outline"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.textToColumns",
+      "label": "Text to Columns",
+      "labelKo": null,
+      "location": [
+        "Data",
+        "Data Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.ungroup",
+      "label": "Ungroup",
+      "labelKo": "그룹 해제",
+      "location": [
+        "Data",
+        "Outline"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.validate",
+      "label": "Check Value Against Validation",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "data.validation",
+      "label": "Data Validation…",
+      "labelKo": "데이터 유효성 검사…",
+      "location": [
+        "Data",
+        "Data Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "document.inspect",
+      "label": "Inspect Workbook",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "draw.eraser",
+      "label": "Eraser",
+      "labelKo": "지우개",
+      "location": [
+        "Draw",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "draw.inkToShape",
+      "label": "Ink to Shape",
+      "labelKo": null,
+      "location": [
+        "Draw",
+        "Convert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "draw.lasso",
+      "label": "Lasso Select",
+      "labelKo": null,
+      "location": [
+        "Draw",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "draw.pen",
+      "label": "Pen",
+      "labelKo": null,
+      "location": [
+        "Draw",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "draw.stroke",
+      "label": "Ink Stroke",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.autoFill",
+      "label": "AutoFill",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.beginEdit",
+      "label": "Edit Cell",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearAll",
+      "label": "Clear All",
+      "labelKo": "모두 지우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Clear"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearClipboard",
+      "label": "Cancel Copy",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearComments",
+      "label": "Clear Comments and Notes",
+      "labelKo": "댓글 및 메모 지우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Clear"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearContents",
+      "label": "Clear Contents",
+      "labelKo": "내용 지우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Clear"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearFormats",
+      "label": "Clear Formats",
+      "labelKo": "서식 지우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Clear"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.clearHyperlinks",
+      "label": "Clear Hyperlinks",
+      "labelKo": "하이퍼링크 지우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Clear"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.copy",
+      "label": "Copy",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Clipboard"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.cut",
+      "label": "Cut",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Clipboard"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.fillDown",
+      "label": "Fill Down",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.fillLeft",
+      "label": "Fill Left",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.fillRight",
+      "label": "Fill Right",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.fillSeries",
+      "label": "Series…",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.fillUp",
+      "label": "Fill Up",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.find",
+      "label": "Find…",
+      "labelKo": "찾기…",
+      "location": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.flashFill",
+      "label": "Flash Fill",
+      "labelKo": "빠른 채우기",
+      "location": [
+        "Home",
+        "Editing",
+        "Fill"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.formatPainter",
+      "label": "Format Painter",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Clipboard"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.goTo",
+      "label": "Go To…",
+      "labelKo": "이동…",
+      "location": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.goToSpecial",
+      "label": "Go To Special…",
+      "labelKo": "선택하여 이동…",
+      "location": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.paste",
+      "label": "Paste",
+      "labelKo": "붙여넣기",
+      "location": [
+        "Home",
+        "Clipboard"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.pasteSpecial",
+      "label": "Paste Special…",
+      "labelKo": "선택하여 붙여넣기…",
+      "location": [
+        "Home",
+        "Clipboard"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.redo",
+      "label": "Redo",
+      "labelKo": null,
+      "location": [
+        "Edit"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.replace",
+      "label": "Replace…",
+      "labelKo": "바꾸기…",
+      "location": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.selectAll",
+      "label": "Select All",
+      "labelKo": null,
+      "location": [
+        "Edit"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "edit.undo",
+      "label": "Undo",
+      "labelKo": null,
+      "location": [
+        "Edit"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "file.close",
+      "label": "Close",
+      "labelKo": "닫기",
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "file.exportCsv",
+      "label": "Export as CSV",
+      "labelKo": null,
+      "location": [
+        "File",
+        "Export"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "file.exportHtml",
+      "label": "Save as Web Page",
+      "labelKo": null,
+      "location": [
+        "File",
+        "Export"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "file.exportPdf",
+      "label": "Export as PDF",
+      "labelKo": null,
+      "location": [
+        "File",
+        "Export"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "file.new",
+      "label": "New Workbook",
+      "labelKo": null,
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "file.open",
+      "label": "Open…",
+      "labelKo": null,
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "file.options",
+      "label": "Options",
+      "labelKo": "옵션",
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "file.print",
+      "label": "Print…",
+      "labelKo": null,
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "file.printPreview",
+      "label": "Print Preview",
+      "labelKo": null,
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "file.properties",
+      "label": "Properties",
+      "labelKo": "속성",
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "file.save",
+      "label": "Save",
+      "labelKo": "저장",
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "file.saveAs",
+      "label": "Save As…",
+      "labelKo": null,
+      "location": [
+        "File"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "file.saveBytes",
+      "label": "Encode Workbook",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.autoSum",
+      "label": "AutoSum",
+      "labelKo": "자동 합계",
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.calculateNow",
+      "label": "Calculate Now",
+      "labelKo": "지금 계산",
+      "location": [
+        "Formulas",
+        "Calculation"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.calculateSheet",
+      "label": "Calculate Sheet",
+      "labelKo": "시트 계산",
+      "location": [
+        "Formulas",
+        "Calculation"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.calculationOptions",
+      "label": "Calculation Options",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Calculation"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.createFromSelection",
+      "label": "Create from Selection",
+      "labelKo": "선택 영역에서 만들기",
+      "location": [
+        "Formulas",
+        "Defined Names"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.dateTime",
+      "label": "Date & Time",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.defineName",
+      "label": "Define Name…",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Defined Names"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.deleteName",
+      "label": "Delete Name",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.errorChecking",
+      "label": "Error Checking",
+      "labelKo": "오류 검사",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.evaluate",
+      "label": "Evaluate",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.evaluateFormula",
+      "label": "Evaluate Formula",
+      "labelKo": "수식 계산",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.financial",
+      "label": "Financial",
+      "labelKo": "재무",
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.functions",
+      "label": "List Functions",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.insertFunction",
+      "label": "Insert Function…",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.logical",
+      "label": "Logical",
+      "labelKo": "논리",
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.lookupReference",
+      "label": "Lookup & Reference",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.mathTrig",
+      "label": "Math & Trig",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.moreFunctions",
+      "label": "More Functions",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.nameManager",
+      "label": "Name Manager",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Defined Names"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.recentlyUsed",
+      "label": "Recently Used",
+      "labelKo": null,
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.removeArrows",
+      "label": "Remove Arrows",
+      "labelKo": "화살표 제거",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.showFormulas",
+      "label": "Show Formulas",
+      "labelKo": "수식 표시",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.text",
+      "label": "Text",
+      "labelKo": "텍스트",
+      "location": [
+        "Formulas",
+        "Function Library"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.traceDependents",
+      "label": "Trace Dependents",
+      "labelKo": "종속 셀 추적",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.tracePrecedents",
+      "label": "Trace Precedents",
+      "labelKo": "선행 셀 추적",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.useInFormula",
+      "label": "Use in Formula",
+      "labelKo": "수식에서 사용",
+      "location": [
+        "Formulas",
+        "Defined Names"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "formulas.watchWindow",
+      "label": "Watch Window",
+      "labelKo": "감시 창",
+      "location": [
+        "Formulas",
+        "Formula Auditing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "history.list",
+      "label": "Undo History",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.accounting",
+      "label": "Accounting Number Format",
+      "labelKo": "회계 숫자 서식",
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.addIns",
+      "label": "Add-ins",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Add-ins"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignBottom",
+      "label": "Bottom Align",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignCenter",
+      "label": "Center",
+      "labelKo": "가운데",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignLeft",
+      "label": "Align Left",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignMiddle",
+      "label": "Middle Align",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignRight",
+      "label": "Align Right",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.alignTop",
+      "label": "Top Align",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.autofitColumnWidth",
+      "label": "AutoFit Column Width",
+      "labelKo": "열 너비 자동 맞춤",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.autofitRowHeight",
+      "label": "AutoFit Row Height",
+      "labelKo": "행 높이 자동 맞춤",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.bold",
+      "label": "Bold",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.borders",
+      "label": "Borders",
+      "labelKo": "테두리",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.cellStyle",
+      "label": "Cell Styles",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.clearRules",
+      "label": "Clear Rules",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Styles",
+        "Conditional Formatting"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.columnWidth",
+      "label": "Column Width…",
+      "labelKo": "열 너비…",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.comma",
+      "label": "Comma Style",
+      "labelKo": "쉼표 스타일",
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.conditionalFormat",
+      "label": "Conditional Formatting",
+      "labelKo": "조건부 서식",
+      "location": [
+        "Home",
+        "Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.decreaseDecimal",
+      "label": "Decrease Decimal",
+      "labelKo": "소수 자릿수 줄이기",
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.decreaseFontSize",
+      "label": "Decrease Font Size",
+      "labelKo": "글꼴 크기 줄이기",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.decreaseIndent",
+      "label": "Decrease Indent",
+      "labelKo": "들여쓰기 줄이기",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.defaultWidth",
+      "label": "Default Width…",
+      "labelKo": "기본 너비…",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.deleteCells",
+      "label": "Delete Cells…",
+      "labelKo": "셀 삭제…",
+      "location": [
+        "Home",
+        "Cells",
+        "Delete"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.deleteColumns",
+      "label": "Delete Sheet Columns",
+      "labelKo": "시트 열 삭제",
+      "location": [
+        "Home",
+        "Cells",
+        "Delete"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.deleteRows",
+      "label": "Delete Sheet Rows",
+      "labelKo": "시트 행 삭제",
+      "location": [
+        "Home",
+        "Cells",
+        "Delete"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.deleteSheet",
+      "label": "Delete Sheet",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Delete"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.doubleUnderline",
+      "label": "Double Underline",
+      "labelKo": "이중 밑줄",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.drawBorder",
+      "label": "Draw Border",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.fillColor",
+      "label": "Fill Color",
+      "labelKo": "채우기 색",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.fontColor",
+      "label": "Font Color",
+      "labelKo": "글꼴 색",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.fontName",
+      "label": "Font",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.fontSize",
+      "label": "Font Size",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.formatAsTable",
+      "label": "Format as Table",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.formatCells",
+      "label": "Format Cells…",
+      "labelKo": "셀 서식…",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.hideColumns",
+      "label": "Hide Columns",
+      "labelKo": "열 숨기기",
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.hideRows",
+      "label": "Hide Rows",
+      "labelKo": "행 숨기기",
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.increaseDecimal",
+      "label": "Increase Decimal",
+      "labelKo": "소수 자릿수 늘리기",
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.increaseFontSize",
+      "label": "Increase Font Size",
+      "labelKo": "글꼴 크기 늘리기",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.increaseIndent",
+      "label": "Increase Indent",
+      "labelKo": "들여쓰기 늘리기",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.insertCells",
+      "label": "Insert Cells…",
+      "labelKo": "셀 삽입…",
+      "location": [
+        "Home",
+        "Cells",
+        "Insert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.insertColumns",
+      "label": "Insert Sheet Columns",
+      "labelKo": "시트 열 삽입",
+      "location": [
+        "Home",
+        "Cells",
+        "Insert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.insertCopiedCells",
+      "label": "Insert Copied Cells",
+      "labelKo": "복사한 셀 삽입",
+      "location": [
+        "Home",
+        "Cells",
+        "Insert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.insertRows",
+      "label": "Insert Sheet Rows",
+      "labelKo": "시트 행 삽입",
+      "location": [
+        "Home",
+        "Cells",
+        "Insert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.insertSheet",
+      "label": "Insert Sheet",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Insert"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.italic",
+      "label": "Italic",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.justify",
+      "label": "Justify",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.lockCell",
+      "label": "Lock Cell",
+      "labelKo": "셀 잠금",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.manageRules",
+      "label": "Manage Rules…",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Styles",
+        "Conditional Formatting"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.mergeAcross",
+      "label": "Merge Across",
+      "labelKo": "행 방향 병합",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.mergeCells",
+      "label": "Merge Cells",
+      "labelKo": "셀 병합",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.mergeCenter",
+      "label": "Merge & Center",
+      "labelKo": "병합하고 가운데 맞춤",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.newCellStyle",
+      "label": "New Cell Style…",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.numberFormat",
+      "label": "Number Format",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.orientation",
+      "label": "Orientation",
+      "labelKo": "방향",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.percent",
+      "label": "Percent Style",
+      "labelKo": "백분율 스타일",
+      "location": [
+        "Home",
+        "Number"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.rowHeight",
+      "label": "Row Height…",
+      "labelKo": "행 높이…",
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.shrinkToFit",
+      "label": "Shrink to Fit",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.strikethrough",
+      "label": "Strikethrough",
+      "labelKo": "취소선",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.subscript",
+      "label": "Subscript",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.superscript",
+      "label": "Superscript",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.underline",
+      "label": "Underline",
+      "labelKo": "밑줄",
+      "location": [
+        "Home",
+        "Font"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.unhideColumns",
+      "label": "Unhide Columns",
+      "labelKo": "열 숨기기 취소",
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.unhideRows",
+      "label": "Unhide Rows",
+      "labelKo": "행 숨기기 취소",
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.unmergeCells",
+      "label": "Unmerge Cells",
+      "labelKo": "셀 병합 취소",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "home.wrapText",
+      "label": "Wrap Text",
+      "labelKo": "텍스트 줄 바꿈",
+      "location": [
+        "Home",
+        "Alignment"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.chart",
+      "label": "Insert Chart",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Charts"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.chartRecommendations",
+      "label": "Chart Recommendations",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.checkbox",
+      "label": "Checkbox",
+      "labelKo": "확인란",
+      "location": [
+        "Insert",
+        "Cell Controls"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.icons",
+      "label": "Icons",
+      "labelKo": "아이콘",
+      "location": [
+        "Insert",
+        "Illustrations"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.link",
+      "label": "Link",
+      "labelKo": "링크",
+      "location": [
+        "Insert",
+        "Links"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.picture",
+      "label": "Picture",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Illustrations"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.pivotChart",
+      "label": "PivotChart",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Charts"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.pivotTable",
+      "label": "PivotTable",
+      "labelKo": "피벗 테이블",
+      "location": [
+        "Insert",
+        "Tables"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.recommendedCharts",
+      "label": "Recommended Charts",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Charts"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.recommendedPivotTables",
+      "label": "Recommended PivotTables",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Tables"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.shape",
+      "label": "Shapes",
+      "labelKo": "도형",
+      "location": [
+        "Insert",
+        "Illustrations"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.slicer",
+      "label": "Slicer",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Filters"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.sparkline",
+      "label": "Sparklines",
+      "labelKo": "스파크라인",
+      "location": [
+        "Insert",
+        "Sparklines"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.symbol",
+      "label": "Symbol",
+      "labelKo": "기호",
+      "location": [
+        "Insert",
+        "Symbols"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.table",
+      "label": "Table",
+      "labelKo": "표",
+      "location": [
+        "Insert",
+        "Tables"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "insert.textBox",
+      "label": "Text Box",
+      "labelKo": null,
+      "location": [
+        "Insert",
+        "Text"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "off"
+      },
+      "id": "link.open",
+      "label": "Open Hyperlink",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "object.delete",
+      "label": "Delete Object",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "object.move",
+      "label": "Move Object",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "object.setAnchorMode",
+      "label": "Object Properties",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "options.autoComplete",
+      "label": "options.autoComplete",
+      "labelKo": null,
+      "location": [
+        "Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.background",
+      "label": "Background",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.breaks",
+      "label": "Breaks",
+      "labelKo": "나누기",
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.headerFooter",
+      "label": "Header & Footer",
+      "labelKo": "머리글 및 바닥글",
+      "location": [
+        "Insert",
+        "Text"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.margins",
+      "label": "Margins",
+      "labelKo": "여백",
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.orientation",
+      "label": "Orientation",
+      "labelKo": "방향",
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.pageSetup",
+      "label": "Page Setup…",
+      "labelKo": "페이지 설정…",
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.printArea",
+      "label": "Set Print Area",
+      "labelKo": "인쇄 영역 설정",
+      "location": [
+        "Page Layout",
+        "Page Setup",
+        "Print Area"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.printGridlines",
+      "label": "Print Gridlines",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Sheet Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.printHeadings",
+      "label": "Print Headings",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Sheet Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.printTitles",
+      "label": "Print Titles",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.scaleToFit",
+      "label": "Scale to Fit",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Scale to Fit"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.size",
+      "label": "Size",
+      "labelKo": "용지 크기",
+      "location": [
+        "Page Layout",
+        "Page Setup"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.theme",
+      "label": "Themes",
+      "labelKo": "테마",
+      "location": [
+        "Page Layout",
+        "Themes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.themeColors",
+      "label": "Colors",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Themes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.themeEffects",
+      "label": "Effects",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Themes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pageLayout.themeFonts",
+      "label": "Fonts",
+      "labelKo": null,
+      "location": [
+        "Page Layout",
+        "Themes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.addField",
+      "label": "Add Field",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.calculatedField",
+      "label": "Calculated Field",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Calculations"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.changeSource",
+      "label": "Change Data Source",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.collapse",
+      "label": "Expand/Collapse Field",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Active Field"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.delete",
+      "label": "Delete PivotTable",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Actions"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.fieldList",
+      "label": "Field List",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Show"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.fields",
+      "label": "PivotTable Fields",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.filter",
+      "label": "Filter Items",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.grandTotals",
+      "label": "Grand Totals",
+      "labelKo": null,
+      "location": [
+        "PivotTable Design",
+        "Layout"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.group",
+      "label": "Group Field",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Group"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.layout",
+      "label": "PivotTable Layout",
+      "labelKo": null,
+      "location": [
+        "PivotTable Design",
+        "Layout"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.list",
+      "label": "PivotTables",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.moveField",
+      "label": "Move Field",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.refresh",
+      "label": "Refresh",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Data"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.removeField",
+      "label": "Remove Field",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.reportLayout",
+      "label": "Report Layout",
+      "labelKo": null,
+      "location": [
+        "PivotTable Design",
+        "Layout"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.sort",
+      "label": "Sort Field",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.style",
+      "label": "PivotTable Styles",
+      "labelKo": null,
+      "location": [
+        "PivotTable Design",
+        "PivotTable Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.subtotals",
+      "label": "Subtotals",
+      "labelKo": null,
+      "location": [
+        "PivotTable Design",
+        "Layout"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "pivot.valueSettings",
+      "label": "Value Field Settings",
+      "labelKo": null,
+      "location": [
+        "PivotTable Analyze",
+        "Active Field"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "range.fill",
+      "label": "Fill Range With Input",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "range.setValues",
+      "label": "Set Values",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.addToDictionary",
+      "label": "Add to Dictionary",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.allowEditRanges",
+      "label": "Allow Edit Ranges…",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Protect"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.changeSpelling",
+      "label": "Change",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.checkAccessibility",
+      "label": "Check Accessibility",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Accessibility"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.convertToComments",
+      "label": "Convert to Comments",
+      "labelKo": "댓글로 변환",
+      "location": [
+        "Review",
+        "Notes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.deleteComment",
+      "label": "Delete Comment",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Comments"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.newComment",
+      "label": "New Comment",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Comments"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.newNote",
+      "label": "New Note",
+      "labelKo": "새 메모",
+      "location": [
+        "Review",
+        "Notes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.nextComment",
+      "label": "Next Comment",
+      "labelKo": "다음 댓글",
+      "location": [
+        "Review",
+        "Comments"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.previousComment",
+      "label": "Previous Comment",
+      "labelKo": "이전 댓글",
+      "location": [
+        "Review",
+        "Comments"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.protectSheet",
+      "label": "Protect Sheet…",
+      "labelKo": "시트 보호…",
+      "location": [
+        "Review",
+        "Protect"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.protectWorkbook",
+      "label": "Protect Workbook",
+      "labelKo": "통합 문서 보호",
+      "location": [
+        "Review",
+        "Protect"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.replyComment",
+      "label": "Reply",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.resolveComment",
+      "label": "Resolve Thread",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.showAllNotes",
+      "label": "Show All Notes",
+      "labelKo": "모든 메모 표시",
+      "location": [
+        "Review",
+        "Notes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.showComments",
+      "label": "Show Comments",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Comments"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.showNote",
+      "label": "Show/Hide Note",
+      "labelKo": "메모 표시/숨기기",
+      "location": [
+        "Review",
+        "Notes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.spelling",
+      "label": "Spelling",
+      "labelKo": "맞춤법 검사",
+      "location": [
+        "Review",
+        "Proofing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.thesaurus",
+      "label": "Thesaurus",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Proofing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.unprotectSheet",
+      "label": "Unprotect Sheet",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Protect"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "review.workbookStatistics",
+      "label": "Workbook Statistics",
+      "labelKo": null,
+      "location": [
+        "Review",
+        "Proofing"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.column",
+      "label": "Select Entire Column",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.currentRegion",
+      "label": "Select Current Region",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.move",
+      "label": "Move Selection",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.next",
+      "label": "Next Cell in Selection",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.row",
+      "label": "Select Entire Row",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.set",
+      "label": "Select",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "selection.stats",
+      "label": "Selection Statistics",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "shape.setText",
+      "label": "Edit Text Box",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.activate",
+      "label": "Activate Sheet",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.hide",
+      "label": "Hide Sheet",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.move",
+      "label": "Move or Copy Sheet…",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.moveColumns",
+      "label": "Move Columns",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.next",
+      "label": "Next Sheet",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.previous",
+      "label": "Previous Sheet",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.read",
+      "label": "Read Range",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.rename",
+      "label": "Rename Sheet",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.tabColor",
+      "label": "Tab Color",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Format"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "sheet.unhide",
+      "label": "Unhide Sheet…",
+      "labelKo": null,
+      "location": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "slicer.clear",
+      "label": "Clear Slicer Filter",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "slicer.delete",
+      "label": "Delete Slicer",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "slicer.selectAll",
+      "label": "Clear Slicer Filter",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "slicer.toggle",
+      "label": "Toggle Slicer Value",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.bandedColumns",
+      "label": "Banded Columns",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.bandedRows",
+      "label": "Banded Rows",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.convertToRange",
+      "label": "Convert to Range",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.firstColumn",
+      "label": "First Column",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.headerRow",
+      "label": "Header Row",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.insertSlicer",
+      "label": "Insert Slicer",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.lastColumn",
+      "label": "Last Column",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.removeDuplicates",
+      "label": "Remove Duplicates",
+      "labelKo": null,
+      "location": [
+        "Table Design",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.rename",
+      "label": "Table Name",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Properties"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.resize",
+      "label": "Resize Table",
+      "labelKo": null,
+      "location": [
+        "Table Design",
+        "Properties"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.style",
+      "label": "Table Styles",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Styles"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.summarizePivot",
+      "label": "Summarize with PivotTable",
+      "labelKo": null,
+      "location": [
+        "Table Design",
+        "Tools"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.totalFunction",
+      "label": "Totals Function",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "table.totalRow",
+      "label": "Total Row",
+      "labelKo": null,
+      "location": [
+        "Table",
+        "Table Style Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.backstage",
+      "label": "ui.backstage",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.dialog",
+      "label": "ui.dialog",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.message.dismiss",
+      "label": "ui.message.dismiss",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.notice",
+      "label": "ui.notice",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.notice.dismiss",
+      "label": "ui.notice.dismiss",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "ui.ribbonTab",
+      "label": "ui.ribbonTab",
+      "labelKo": null,
+      "location": [
+        "Ui"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.animations",
+      "label": "view.animations",
+      "labelKo": null,
+      "location": [
+        "View"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.arrangeAll",
+      "label": "Arrange All",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.collapseRibbon",
+      "label": "view.collapseRibbon",
+      "labelKo": null,
+      "location": [
+        "View"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.customViews",
+      "label": "Custom Views…",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Workbook Views"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.darkMode",
+      "label": "view.darkMode",
+      "labelKo": null,
+      "location": [
+        "View"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.formulaBar",
+      "label": "Formula Bar",
+      "labelKo": "수식 입력줄",
+      "location": [
+        "View",
+        "Show"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.freezeFirstColumn",
+      "label": "Freeze First Column",
+      "labelKo": "첫 열 고정",
+      "location": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.freezePanes",
+      "label": "Freeze Panes",
+      "labelKo": "틀 고정",
+      "location": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.freezeTopRow",
+      "label": "Freeze Top Row",
+      "labelKo": "첫 행 고정",
+      "location": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.gridlines",
+      "label": "Gridlines",
+      "labelKo": "눈금선",
+      "location": [
+        "View",
+        "Show"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.headings",
+      "label": "Headings",
+      "labelKo": "머리글",
+      "location": [
+        "View",
+        "Show"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.hideWindow",
+      "label": "Hide",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.interfaceScale",
+      "label": "view.interfaceScale",
+      "labelKo": null,
+      "location": [
+        "View"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "locked"
+      },
+      "id": "view.macros",
+      "label": "Macros",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Macros"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.newWindow",
+      "label": "New Window",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.normal",
+      "label": "Normal",
+      "labelKo": "보통",
+      "location": [
+        "View",
+        "Workbook Views"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.pageBreakPreview",
+      "label": "Page Break Preview",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Workbook Views"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.pageLayout",
+      "label": "Page Layout",
+      "labelKo": "페이지 레이아웃",
+      "location": [
+        "View",
+        "Workbook Views"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.rightToLeft",
+      "label": "Sheet Right-to-Left",
+      "labelKo": "시트 오른쪽에서 왼쪽으로",
+      "location": [
+        "Page Layout",
+        "Sheet Options"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.ruler",
+      "label": "Ruler",
+      "labelKo": "눈금자",
+      "location": [
+        "View",
+        "Show"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.showZeros",
+      "label": "Show Zeros",
+      "labelKo": null,
+      "location": []
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.split",
+      "label": "Split",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.switchWindows",
+      "label": "Switch Windows",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.theme",
+      "label": "view.theme",
+      "labelKo": null,
+      "location": [
+        "View"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.unfreezePanes",
+      "label": "Unfreeze Panes",
+      "labelKo": "틀 고정 취소",
+      "location": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.unhideWindow",
+      "label": "Unhide…",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Window"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.zoom",
+      "label": "Zoom",
+      "labelKo": "확대/축소",
+      "location": [
+        "View",
+        "Zoom"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.zoom100",
+      "label": "100%",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Zoom"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "view.zoomToSelection",
+      "label": "Zoom to Selection",
+      "labelKo": null,
+      "location": [
+        "View",
+        "Zoom"
+      ]
+    },
+    {
+      "grades": {
+        "builder": "on"
+      },
+      "id": "window.activate",
+      "label": "Switch Window",
+      "labelKo": null,
+      "location": [
+        "Window"
+      ]
+    }
+  ],
+  "schema": 1
+}

@@ -105,6 +105,9 @@ struct WebShell {
 
 impl eframe::App for WebShell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if let Some(bridge) = &self.bridge {
+            bridge.apply_policy(&self.app);
+        }
         let dropped = ctx.input_mut(|i| std::mem::take(&mut i.raw.dropped_files));
         // Host lock: the host sends the files; dropped ones are ignored.
         let dropped = if self.app.host_locked() { Vec::new() } else { dropped };

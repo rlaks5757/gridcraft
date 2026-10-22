@@ -1,12 +1,17 @@
-//! PPM host lock: what an embedded GridCraft may do when a same-origin parent page owns the
-//! files. In a locked session (every session of the `ppm-host` build, see [`HOST_BUILD`]) a
-//! command runs only if it is classified here; a command nobody classified is refused, and the
-//! drift test below fails until it is classified.
+//! Every command has a grade. `Locked`: never runs in a locked session, whatever the policy
+//! says (opening, creating and closing workbooks, scripts and macros; the parent's own workbook
+//! arrives as bytes through `file.open`). `Off`: off until the parent's policy turns it on (Save
+//! As, exports, printing, opening links). `On`: on until the policy turns it off. Edits inside
+//! the workbook are `On`, including the ones that read a local picture or data file to put in
+//! it. Save hands the workbook (xlsx) to the parent.
 //!
-//! Blocked: opening, creating, closing and exporting files, printing, scripts, local pictures and
-//! opening links. The workbook itself reaches the parent through `file.save` (xlsx only).
+//! The parent sends `policy: { overrides: { "<command id>": true | false } }` with the workbook
+//! ([`Policy`]); only commands that differ from their grade are listed. A command nobody
+//! classified is refused, and the drift test below fails until it is classified.
 
 use serde_json::Value as Json;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 /// True in builds made with the `ppm-host` feature (`ppm/build-web.sh`): every session is locked
 /// and nothing at run time can unlock it.
@@ -14,6 +19,48 @@ pub const HOST_BUILD: bool = cfg!(feature = "ppm-host");
 
 /// Text every host-lock refusal carries, so the UI can drop it without a message.
 pub const BLOCKED_TEXT: &str = "blocked by the PPM host lock";
+
+/// Whether a command runs by default and what a policy can change.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Grade {
+    Locked,
+    Off,
+    On,
+}
+
+impl Grade {
+    /// The name `commands.json` uses.
+    pub fn name(self) -> &'static str {
+        match self {
+            Grade::Locked => "locked",
+            Grade::Off => "off",
+            Grade::On => "on",
+        }
+    }
+}
+
+/// The parent's overrides. Cloned handles share the state, so a service made once at start sees
+/// a policy that arrives with the next open message.
+#[derive(Clone, Debug, Default)]
+pub struct Policy(Arc<Mutex<HashMap<String, bool>>>);
+
+impl Policy {
+    /// Is a command of `grade` on? `true` turns an `Off` command on, `false` turns an `On`
+    /// command off; a `Locked` command never is, and an id nobody overrode keeps its grade.
+    pub fn enabled(&self, id: &str, grade: Grade) -> bool {
+        let over = self.0.lock().unwrap_or_else(|e| e.into_inner()).get(id).copied();
+        match grade {
+            Grade::Locked => false,
+            Grade::Off => over == Some(true),
+            Grade::On => over != Some(false),
+        }
+    }
+
+    /// Replaces the overrides. Ids that are no command are never asked for, so they do nothing.
+    pub fn set(&self, overrides: &[(String, bool)]) {
+        *self.0.lock().unwrap_or_else(|e| e.into_inner()) = overrides.iter().cloned().collect();
+    }
+}
 
 /// Commands a locked session runs as they are.
 pub const ALLOWED: &[&str] = &[
@@ -206,6 +253,7 @@ pub const ALLOWED: &[&str] = &[
     "insert.checkbox",
     "insert.icons",
     "insert.link",
+    "insert.picture",
     "insert.pivotChart",
     "insert.pivotTable",
     "insert.recommendedCharts",
@@ -219,6 +267,7 @@ pub const ALLOWED: &[&str] = &[
     "object.delete",
     "object.move",
     "object.setAnchorMode",
+    "pageLayout.background",
     "pageLayout.breaks",
     "pageLayout.headerFooter",
     "pageLayout.margins",
@@ -338,7 +387,7 @@ pub const ALLOWED: &[&str] = &[
     "view.zoomToSelection",
     "window.activate",
 ];
-/// Commands a locked session refuses.
+/// Commands a locked session never runs.
 pub const BLOCKED: &[&str] = &[
     "automate.allScripts",
     "automate.deleteScript",
@@ -348,16 +397,17 @@ pub const BLOCKED: &[&str] = &[
     "data.fromTextCsv",
     "data.getData",
     "file.close",
+    "file.new",
+    "view.macros",
+];
+/// Commands that are off until the policy turns them on.
+pub const OFF: &[&str] = &[
     "file.exportCsv",
     "file.exportHtml",
     "file.exportPdf",
-    "file.new",
     "file.print",
     "file.saveAs",
-    "insert.picture",
     "link.open",
-    "pageLayout.background",
-    "view.macros",
 ];
 /// Commands a locked session runs only with certain params (see [`permits`]).
 pub const CONDITIONAL: &[&str] = &[
@@ -366,22 +416,55 @@ pub const CONDITIONAL: &[&str] = &[
     "file.saveBytes",
 ];
 
-/// Whether a locked session may run `id` with `params`. Unclassified ids are refused.
-pub fn permits(id: &str, params: &Json) -> bool {
+/// The grade of the engine command `id`; `None` for an id nobody classified. `file.open` is
+/// `Locked`, but see [`permits`].
+pub fn grade(id: &str) -> Option<Grade> {
+    if BLOCKED.contains(&id) || id == "file.open" {
+        Some(Grade::Locked)
+    } else if OFF.contains(&id) {
+        Some(Grade::Off)
+    } else if ALLOWED.contains(&id) || CONDITIONAL.contains(&id) {
+        Some(Grade::On)
+    } else {
+        None
+    }
+}
+
+/// The command that decides whether `file.saveBytes` may produce `format`: the workbook always,
+/// the others as their export or Save As.
+fn export_command(format: &str) -> Option<&'static str> {
+    match format.to_ascii_lowercase().as_str() {
+        "xlsx" => None,
+        "csv" | "tsv" => Some("file.exportCsv"),
+        "html" => Some("file.exportHtml"),
+        "pdf" => Some("file.exportPdf"),
+        _ => Some("file.saveAs"),
+    }
+}
+
+/// Whether a session locked with `policy` (`None`: not locked) may run `id` with `params`.
+/// Unclassified ids are refused.
+pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
+    let Some(policy) = policy else { return true };
     let has = |key: &str| params.get(key).is_some_and(|v| !v.is_null());
     match id {
         // A workbook the parent sent arrives as bytes; no path, no picker.
         "file.open" => has("base64") && !has("path"),
         // Save hands the xlsx to the parent; a path would pick a file (and its extension a format).
-        "file.save" => !has("path"),
-        "file.saveBytes" => params.get("format").and_then(Json::as_str).is_none_or(|f| f.eq_ignore_ascii_case("xlsx")),
-        _ => ALLOWED.contains(&id),
+        "file.save" => policy.enabled(id, Grade::On) && (!has("path") || policy.enabled("file.saveAs", Grade::Off)),
+        "file.saveBytes" => {
+            policy.enabled(id, Grade::On) && params.get("format").and_then(Json::as_str).and_then(export_command).is_none_or(|c| policy.enabled(c, Grade::Off))
+        }
+        _ => grade(id).is_some_and(|g| policy.enabled(id, g)),
     }
 }
 
 /// Whether a locked session lists `id` (command search, menus built from the command table).
-pub fn listed(id: &str) -> bool {
-    ALLOWED.contains(&id)
+pub fn listed(policy: Option<&Policy>, id: &str) -> bool {
+    match policy {
+        None => true,
+        Some(p) => id != "file.open" && grade(id).is_some_and(|g| p.enabled(id, g)),
+    }
 }
 
 #[cfg(test)]
@@ -401,14 +484,14 @@ mod tests {
     #[test]
     fn every_command_is_classified_exactly_once() {
         for spec in command_specs() {
-            let n = [ALLOWED, BLOCKED, CONDITIONAL].iter().filter(|l| l.contains(&spec.id)).count();
-            assert_eq!(n, 1, "command `{}` must be in exactly one of ALLOWED, BLOCKED, CONDITIONAL in hostlock.rs", spec.id);
+            let n = [ALLOWED, BLOCKED, OFF, CONDITIONAL].iter().filter(|l| l.contains(&spec.id)).count();
+            assert_eq!(n, 1, "command `{}` must be in exactly one of ALLOWED, BLOCKED, OFF, CONDITIONAL in hostlock.rs", spec.id);
         }
     }
 
     #[test]
     fn lists_hold_no_stale_ids_and_are_sorted() {
-        for list in [ALLOWED, BLOCKED, CONDITIONAL] {
+        for list in [ALLOWED, BLOCKED, OFF, CONDITIONAL] {
             assert!(list.windows(2).all(|w| w[0] < w[1]), "keep the lists sorted and free of duplicates");
             for id in list {
                 assert!(command_specs().iter().any(|c| c.id == *id), "`{id}` is classified but no such command exists");
@@ -417,12 +500,47 @@ mod tests {
     }
 
     #[test]
-    fn locked_session_refuses_every_blocked_command() {
+    fn locked_session_refuses_every_blocked_and_off_command() {
         let mut s = locked();
-        for id in BLOCKED {
+        for id in BLOCKED.iter().chain(OFF) {
             let e = s.execute(id, json!({})).unwrap_err().to_string();
             assert!(e.contains(BLOCKED_TEXT), "`{id}` ran in a locked session: {e}");
         }
+    }
+
+    #[test]
+    fn overrides_turn_off_commands_on_and_on_commands_off() {
+        let mut s = locked();
+        let policy = s.host_policy().unwrap();
+        let refused = |s: &mut Session, id: &str| s.execute(id, json!({})).err().is_some_and(|e| e.to_string().contains(BLOCKED_TEXT));
+        assert!(refused(&mut s, "file.exportCsv"));
+        policy.set(&[("file.exportCsv".into(), true), ("home.bold".into(), false), ("no.such".into(), true)]);
+        assert!(!refused(&mut s, "file.exportCsv"), "an Off command turns on");
+        assert!(refused(&mut s, "home.bold"), "an On command turns off");
+        assert!(!refused(&mut s, "home.italic"), "the rest is untouched");
+        policy.set(&[]);
+        assert!(refused(&mut s, "file.exportCsv"));
+        assert!(!refused(&mut s, "home.bold"));
+    }
+
+    #[test]
+    fn locked_commands_stay_locked_whatever_the_policy_says() {
+        let mut s = locked();
+        let all: Vec<(String, bool)> = BLOCKED.iter().chain(&["file.open"]).map(|id| (id.to_string(), true)).collect();
+        s.set_policy(&all);
+        for id in BLOCKED {
+            assert!(s.execute(id, json!({})).unwrap_err().to_string().contains(BLOCKED_TEXT), "{id}");
+        }
+        assert!(s.execute("file.open", json!({"path": "/etc/hosts"})).unwrap_err().to_string().contains(BLOCKED_TEXT));
+    }
+
+    #[test]
+    fn in_workbook_edits_stay_on() {
+        let mut s = locked();
+        for id in ["insert.picture", "pageLayout.background", "home.addIns", "file.printPreview"] {
+            assert!(permits(s.host_policy().as_ref(), id, &json!({})), "{id}");
+        }
+        assert!(s.execute("home.addIns", json!({})).is_ok());
     }
 
     #[test]
@@ -446,27 +564,38 @@ mod tests {
         let e = s.execute("file.open", json!({"path": "/etc/hosts"})).unwrap_err().to_string();
         assert!(e.contains(BLOCKED_TEXT));
         assert!(s.execute("file.open", json!({})).unwrap_err().to_string().contains(BLOCKED_TEXT));
-        assert!(!permits("file.open", &json!({"path": "a.xlsx", "base64": "AA=="})));
-        assert!(permits("file.open", &json!({"name": "a.xlsx", "base64": "AA=="})));
+        let p = s.host_policy();
+        assert!(!permits(p.as_ref(), "file.open", &json!({"path": "a.xlsx", "base64": "AA=="})));
+        assert!(permits(p.as_ref(), "file.open", &json!({"name": "a.xlsx", "base64": "AA=="})));
     }
 
     #[test]
-    fn save_is_xlsx_bytes_only() {
+    fn save_is_xlsx_bytes_only_until_the_policy_says_otherwise() {
         let mut s = locked();
         assert!(s.execute("file.saveBytes", json!({"format": "xlsx"})).is_ok());
         for format in ["csv", "html", "json", "tsv"] {
             let e = s.execute("file.saveBytes", json!({"format": format})).unwrap_err().to_string();
             assert!(e.contains(BLOCKED_TEXT), "{format}");
         }
-        assert!(!permits("file.save", &json!({"path": "x.pdf"})));
-        assert!(permits("file.save", &json!({})));
+        let p = s.host_policy();
+        assert!(!permits(p.as_ref(), "file.save", &json!({"path": "x.pdf"})));
+        assert!(permits(p.as_ref(), "file.save", &json!({})));
+        s.set_policy(&[("file.exportCsv".to_string(), true), ("file.saveAs".to_string(), true)]);
+        assert!(s.execute("file.saveBytes", json!({"format": "csv"})).is_ok());
+        assert!(s.execute("file.saveBytes", json!({"format": "json"})).is_ok());
+        assert!(s.execute("file.saveBytes", json!({"format": "html"})).is_err(), "html is its own export");
+        assert!(permits(s.host_policy().as_ref(), "file.save", &json!({"path": "x.xlsx"})));
     }
 
     #[test]
     fn locked_commands_are_not_listed() {
-        let s = locked();
-        let ids: Vec<&str> = s.commands().iter().map(|c| c.id).collect();
-        assert!(!ids.contains(&"file.print") && !ids.contains(&"file.open"));
-        assert!(ids.contains(&"home.bold"));
+        let mut s = locked();
+        let ids = |s: &Session| s.commands().iter().map(|c| c.id).collect::<Vec<_>>();
+        let listed = ids(&s);
+        assert!(!listed.contains(&"file.print") && !listed.contains(&"file.open") && !listed.contains(&"file.close"));
+        assert!(listed.contains(&"home.bold") && listed.contains(&"insert.picture"));
+        s.set_policy(&[("file.print".to_string(), true), ("home.bold".to_string(), false)]);
+        let listed = ids(&s);
+        assert!(listed.contains(&"file.print") && !listed.contains(&"home.bold"));
     }
 }

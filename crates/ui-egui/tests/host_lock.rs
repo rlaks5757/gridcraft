@@ -46,9 +46,15 @@ fn counting(hits: &Arc<AtomicUsize>, downloads: &Downloads, inbox: Inbox) -> Ser
 }
 
 fn harness(locked: bool, services: Services) -> egui_kittest::Harness<'static, SheetApp> {
+    harness_with(locked, &[], services)
+}
+
+/// A harness whose parent turned `overrides` on (`true`) or off (`false`).
+fn harness_with(locked: bool, overrides: &[(&str, bool)], services: Services) -> egui_kittest::Harness<'static, SheetApp> {
     let mut session = Session::new();
     if locked {
         session.lock_host();
+        session.set_policy(&overrides.iter().map(|(id, on)| (id.to_string(), *on)).collect::<Vec<_>>());
     }
     session.new_workbook();
     let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_ui_state(
@@ -83,11 +89,9 @@ fn blocked_commands_do_nothing_quietly() {
         "file.exportPdf",
         "file.exportCsv",
         "file.exportHtml",
-        "insert.picture",
         "link.open",
         "view.macros",
         "automate.runScript",
-        "data.getData",
         "ui.printSettings",
         "ui.printSubmit",
     ] {
@@ -122,7 +126,7 @@ fn shortcuts_for_blocked_commands_do_nothing() {
 #[test]
 fn blocked_dialogs_do_not_open() {
     let (mut h, hits, _, _) = locked_harness();
-    for name in ["open", "start", "saveCopy", "insertPicture", "macros", "openLink", "agents"] {
+    for name in ["open", "start", "saveCopy", "macros", "openLink", "agents"] {
         h.state_mut().open_dialog(name, json!({"url": "https://example.com"}));
         h.run_steps(2);
         assert!(h.state().dialog.is_none(), "{name} opened");
@@ -175,10 +179,10 @@ fn the_ribbon_and_title_bar_lose_the_blocked_entries() {
     assert!(h.query_by_label("AutoSave").is_none());
     h.state_mut().ui.ribbon_tab = "Insert".into();
     h.run_steps(3);
-    assert!(h.query_by_label("Pictures").is_none());
+    assert!(h.query_by_label("Pictures").is_some(), "a picture goes in the workbook");
     h.state_mut().ui.ribbon_tab = "Data".into();
     h.run_steps(3);
-    assert!(h.query_by_label("Get Data\n(Text/CSV)").is_none());
+    assert!(h.query_by_label("Get Data\n(Text/CSV)").is_none(), "Get Data reads a local file");
 
     let hits = Arc::new(AtomicUsize::new(0));
     let mut open = harness(false, counting(&hits, &Downloads::default(), Inbox::default()));
@@ -225,6 +229,69 @@ fn an_unlocked_app_keeps_every_service() {
     assert!(!h.state().host_locked());
 }
 
+#[test]
+fn the_locked_app_keeps_the_pickers_for_things_that_go_in_the_workbook() {
+    let (h, ..) = locked_harness();
+    let s = &h.state().services;
+    assert!(s.pick_picture.is_some() && s.pick_picture_async.is_some());
+    assert!(s.open_async.is_none() && s.pick_open.is_none() && s.pick_save.is_none());
+}
+
+#[test]
+fn a_picture_can_still_be_inserted() {
+    let (mut h, ..) = locked_harness();
+    let png = {
+        let mut out = Vec::new();
+        image::DynamicImage::new_rgba8(2, 2).write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png).unwrap();
+        out
+    };
+    let r = h.state_mut().run("insert.picture", json!({"base64": gridcraft_engine::io::base64_encode(&png), "at": "B2"}));
+    assert!(r.is_ok(), "{r:?}");
+}
+
+#[test]
+fn download_and_print_and_links_follow_the_policy() {
+    for (overrides, name, passes) in [
+        (&[][..], "a.xlsx", true),
+        (&[][..], "a.pdf", false),
+        (&[("file.print", true)][..], "a.pdf", true),
+        (&[("file.print", true)][..], "a.csv", false),
+        (&[("file.exportCsv", true)][..], "a.csv", true),
+        (&[("file.exportCsv", true)][..], "a.html", false),
+        (&[("file.exportHtml", true)][..], "a.html", true),
+        (&[("file.saveAs", true)][..], "a.json", true),
+        (&[][..], "a.json", false),
+    ] {
+        let downloads = Downloads::default();
+        let h = harness_with(true, overrides, counting(&Arc::default(), &downloads, Inbox::default()));
+        (h.state().services.download.as_ref().unwrap())(name, b"x");
+        assert_eq!(!downloads.lock().unwrap().is_empty(), passes, "{name} with {overrides:?}");
+    }
+    for (overrides, runs) in [(&[][..], 0), (&[("link.open", true), ("file.print", true)][..], 1)] {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let h = harness_with(true, overrides, counting(&hits, &Downloads::default(), Inbox::default()));
+        (h.state().services.open_url.as_ref().unwrap())("https://example.com");
+        (h.state().services.print.as_ref().unwrap())(b"x");
+        assert_eq!(hits.load(Ordering::SeqCst), runs * 2, "{overrides:?}");
+    }
+}
+
+#[test]
+fn overrides_turn_commands_and_pages_on_and_off() {
+    let (mut h, ..) = {
+        let hits = Arc::new(AtomicUsize::new(0));
+        (harness_with(true, &[("file.print", true), ("file.exportPdf", true), ("home.bold", false)], counting(&hits, &Downloads::default(), Inbox::default())),)
+    };
+    assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Print));
+    assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Export));
+    assert!(!h.state().page_allowed(gridcraft_ui_egui::backstage::Page::SaveAs));
+    assert!(!h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Open));
+    assert!(!h.state().allowed("home.bold") && h.state().allowed("home.italic"));
+    assert!(h.state_mut().run("home.bold", json!({})).is_err());
+    assert!(h.state_mut().run("file.close", json!({})).is_err(), "locked stays locked");
+    assert!(h.state().allowed("ui.printSettings") && h.state().allowed("ui.printSubmit"), "the print dialog follows file.print");
+}
+
 /// Every command the app handles itself (`run_ui_command`) is classified for the host lock.
 #[test]
 fn ui_commands_are_all_classified() {
@@ -239,10 +306,10 @@ fn ui_commands_are_all_classified() {
     }
     assert!(found.len() >= 15, "found only {found:?}");
     for id in &found {
-        let n = [gridcraft_ui_egui::UI_COMMANDS_ALLOWED, gridcraft_ui_egui::UI_COMMANDS_BLOCKED].iter().filter(|l| l.contains(&id.as_str())).count();
-        assert_eq!(n, 1, "app command `{id}` must be in exactly one of UI_COMMANDS_ALLOWED / UI_COMMANDS_BLOCKED");
+        let n = [gridcraft_ui_egui::UI_COMMANDS_ALLOWED, gridcraft_ui_egui::UI_COMMANDS_OFF].iter().filter(|l| l.contains(&id.as_str())).count();
+        assert_eq!(n, 1, "app command `{id}` must be in exactly one of UI_COMMANDS_ALLOWED / UI_COMMANDS_OFF");
     }
-    for id in gridcraft_ui_egui::UI_COMMANDS_ALLOWED.iter().chain(gridcraft_ui_egui::UI_COMMANDS_BLOCKED) {
+    for id in gridcraft_ui_egui::UI_COMMANDS_ALLOWED.iter().chain(gridcraft_ui_egui::UI_COMMANDS_OFF) {
         assert!(found.iter().any(|f| f == id), "`{id}` is classified but run_ui_command has no such arm");
     }
 }

@@ -2,8 +2,12 @@
 //! GridCraft in an `<iframe>` (such as a Nextcloud app). Messages are plain objects with a `type`:
 //!
 //! - `gridcraft:ready` (to the parent): `{ version }`, the app is listening; send a file now.
-//! - `gridcraft:open` (from the parent): `{ name, bytes }`, bytes an `ArrayBuffer` or
-//!   `Uint8Array`. It opens like a workbook picked with File › Open or dropped on the window.
+//! - `gridcraft:open` (from the parent): `{ name, bytes, policy }`, bytes an `ArrayBuffer`
+//!   or `Uint8Array`. It opens like a workbook picked with File › Open or dropped on the window.
+//!   `policy` is `{ overrides: { "<command id>": true | false } }` with the commands that differ
+//!   from their grade (see `commands.json`); in the PPM build `true` turns an off command on and
+//!   `false` an on command off. A missing or malformed policy changes nothing; ids that are no
+//!   command and values that are no boolean are ignored.
 //! - `gridcraft:save` (to the parent): `{ name, bytes }` (a transferred `ArrayBuffer`) for every
 //!   file GridCraft would otherwise download: Save and Save As (an .xlsx workbook) and Export
 //!   as PDF. The parent stores it and reports failures itself.
@@ -37,6 +41,8 @@ pub struct Bridge {
     saved: Rc<RefCell<Vec<String>>>,
     /// The unsaved-changes state last reported to the parent.
     reported: Rc<Cell<Option<bool>>>,
+    /// The overrides of the latest `gridcraft:open`, until the next frame applies them.
+    policy: Rc<RefCell<Option<Vec<(String, bool)>>>>,
 }
 
 impl Bridge {
@@ -48,7 +54,7 @@ impl Bridge {
             return None;
         }
         let origin = window.location().origin().ok()?;
-        Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default() })
+        Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default(), policy: Rc::default() })
     }
 
     /// Send saved and exported files to the parent instead of downloading them, and hear files
@@ -109,8 +115,16 @@ impl Bridge {
         Ok(())
     }
 
+    /// Before each pass: the policy that came with a workbook is set before the workbook opens.
+    pub fn apply_policy(&self, app: &SheetApp) {
+        if let Some(overrides) = self.policy.borrow_mut().take() {
+            app.session.set_policy(&overrides);
+        }
+    }
+
     fn listen(&self, inbox: Inbox, ctx: egui::Context) {
         let parent = self.parent.clone();
+        let policy = self.policy.clone();
         let origin = self.origin.clone();
         let on_message = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |event: web_sys::MessageEvent| {
             if event.origin() != origin || !event.source().is_some_and(|s| js_sys::Object::is(&s, &parent)) {
@@ -122,6 +136,7 @@ impl Bridge {
             }
             let name = string(&data, "name").filter(|n| !n.trim().is_empty()).unwrap_or_else(|| "Book.xlsx".to_string());
             let Some(bytes) = bytes(&data) else { return };
+            *policy.borrow_mut() = Some(policy_overrides(&data));
             inbox.lock().unwrap_or_else(|e| e.into_inner()).push((name, bytes));
             ctx.request_repaint();
         });
@@ -147,6 +162,24 @@ fn message(fields: &[(&str, JsValue)]) -> Option<js_sys::Object> {
         js_sys::Reflect::set(&m, &JsValue::from_str(key), value).ok()?;
     }
     Some(m)
+}
+
+/// `policy.overrides` as `(command id, on)` pairs; anything else (no policy, not an object,
+/// values that are no boolean) is left out.
+fn policy_overrides(data: &JsValue) -> Vec<(String, bool)> {
+    let overrides = js_sys::Reflect::get(data, &JsValue::from_str("policy"))
+        .and_then(|p| js_sys::Reflect::get(&p, &JsValue::from_str("overrides")))
+        .unwrap_or(JsValue::UNDEFINED);
+    if !overrides.is_object() || js_sys::Array::is_array(&overrides) {
+        return Vec::new();
+    }
+    js_sys::Object::entries(&js_sys::Object::from(overrides))
+        .iter()
+        .filter_map(|entry| {
+            let pair = js_sys::Array::from(&entry);
+            Some((pair.get(0).as_string()?, pair.get(1).as_bool()?))
+        })
+        .collect()
 }
 
 fn string(data: &JsValue, key: &str) -> Option<String> {

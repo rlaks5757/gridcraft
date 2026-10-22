@@ -18,6 +18,7 @@ pub mod fonts;
 pub mod formula_bar;
 mod formula_locale;
 pub mod grid;
+pub mod host_lock;
 pub mod i18n;
 pub mod icons;
 pub mod keymap;
@@ -37,6 +38,7 @@ pub mod widgets;
 use std::collections::HashMap;
 
 use gridcraft_engine::core::{CellRef, RangeRef};
+use gridcraft_engine::hostlock::Policy;
 use gridcraft_engine::{Session, UiRequest};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as Json, json};
@@ -199,22 +201,37 @@ pub struct Services {
 }
 
 impl Services {
-    /// What stays of the platform services under the PPM host lock: the clipboard services and
-    /// `download` (which the host bridge points at the parent's save, and which only a workbook
-    /// (.xlsx) may reach). File pickers, printing and opening links are gone.
-    fn lock_for_host(&mut self) {
+    /// What stays of the platform services under the PPM host lock: the clipboard services,
+    /// the pickers for pictures to put in the workbook, and `download` (which the host bridge
+    /// points at the parent's save), which hands over a workbook (.xlsx) always and another
+    /// format only when `policy` turns its export on. File pickers for workbooks, the desktop
+    /// print services are gone; printing the page and opening links work only with their command
+    /// on.
+    fn lock_for_host(&mut self, policy: Policy) {
         self.printers = None;
         self.print_native = None;
-        self.print = None;
         self.pick_open = None;
         self.pick_save = None;
-        self.pick_picture = None;
-        self.pick_picture_async = None;
         self.open_async = None;
-        self.open_url = None;
+        if let Some(print) = self.print.take() {
+            let policy = policy.clone();
+            self.print = Some(Box::new(move |bytes: &[u8]| {
+                if host_lock::enabled(Some(&policy), "file.print") {
+                    print(bytes);
+                }
+            }));
+        }
+        if let Some(open_url) = self.open_url.take() {
+            let policy = policy.clone();
+            self.open_url = Some(Box::new(move |url: &str| {
+                if host_lock::enabled(Some(&policy), "link.open") {
+                    open_url(url);
+                }
+            }));
+        }
         if let Some(download) = self.download.take() {
             self.download = Some(Box::new(move |name: &str, bytes: &[u8]| {
-                if name.rsplit_once('.').is_some_and(|(_, ext)| ext.eq_ignore_ascii_case("xlsx")) {
+                if download_permitted(&policy, name) {
                     download(name, bytes);
                 } else {
                     log::warn!("the PPM host lock refused to hand {name} to the host");
@@ -224,8 +241,23 @@ impl Services {
     }
 }
 
-/// Commands run by the app itself (not the engine) that a host-locked app refuses.
-pub const UI_COMMANDS_BLOCKED: &[&str] = &["ui.printSettings", "ui.printSubmit"];
+/// Whether the host-locked app may hand `name` to the parent: the workbook always, another
+/// format as its export (PDF also as printing) or Save As.
+fn download_permitted(policy: &Policy, name: &str) -> bool {
+    let on = |id| host_lock::enabled(Some(policy), id);
+    let ext = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default();
+    match ext.as_str() {
+        "xlsx" => true,
+        "pdf" => on("file.print") || on("file.exportPdf"),
+        "html" | "htm" => on("file.exportHtml"),
+        "csv" | "tsv" => on("file.exportCsv"),
+        _ => on("file.saveAs"),
+    }
+}
+
+/// Commands run by the app itself (not the engine) that are off until the parent's policy turns
+/// on `file.print`, whose switch they follow.
+pub const UI_COMMANDS_OFF: &[&str] = &["ui.printSettings", "ui.printSubmit"];
 
 /// Commands run by the app itself that a host-locked app runs. Every `run_ui_command` arm is in
 /// one of the two lists (a test reads the source to check).
@@ -247,12 +279,12 @@ pub const UI_COMMANDS_ALLOWED: &[&str] = &[
     "view.theme",
 ];
 
-/// Dialogs a host-locked app does not open: they pick local files, list files, run scripts or
-/// open links. `saveAs` stays: Save reaches the host through it.
-const DIALOGS_BLOCKED: &[&str] = &["agents", "insertPicture", "macros", "open", "openLink", "saveCopy", "start"];
+/// Dialogs a host-locked app never opens: they pick local workbooks, list files or run scripts.
+/// `saveAs` stays: Save reaches the host through it.
+const DIALOGS_LOCKED: &[&str] = &["agents", "macros", "open", "start"];
 
-/// Backstage pages a host-locked app shows.
-const BACKSTAGE_PAGES_LOCKED: &[backstage::Page] = &[backstage::Page::Info, backstage::Page::Options];
+/// Dialogs that open once their command is on: `(dialog, command)`.
+const DIALOGS_GATED: &[(&str, &str)] = &[("openLink", "link.open"), ("saveCopy", "file.saveAs")];
 
 /// Shared queue of files read asynchronously (browser file picker, drag and drop).
 pub type Inbox = std::sync::Arc<std::sync::Mutex<Vec<(String, Vec<u8>)>>>;
@@ -323,9 +355,8 @@ pub struct SheetApp {
 
 impl SheetApp {
     pub fn new(session: Session, mut services: Services) -> SheetApp {
-        let locked = session.host_locked();
-        if locked {
-            services.lock_for_host();
+        if let Some(policy) = session.host_policy() {
+            services.lock_for_host(policy);
         }
         SheetApp {
             session,
@@ -378,7 +409,20 @@ impl SheetApp {
     /// Whether the command `id` may run from a menu, button or shortcut. Always true outside
     /// the host lock.
     pub fn allowed(&self, id: &str) -> bool {
-        !self.host_locked() || UI_COMMANDS_ALLOWED.contains(&id) || gridcraft_engine::hostlock::permits(id, &json!({}))
+        host_lock::enabled(self.session.host_policy().as_ref(), id)
+    }
+
+    /// May the File tab show `page`? Info and Options stay; Home, New and Open are the start
+    /// screens; Save As, Print and Export need their commands.
+    pub fn page_allowed(&self, page: backstage::Page) -> bool {
+        use backstage::Page;
+        match page {
+            Page::Info | Page::Options => true,
+            Page::Home | Page::New | Page::Open => !self.host_locked(),
+            Page::SaveAs => self.allowed("file.saveAs"),
+            Page::Print => self.allowed("file.print"),
+            Page::Export => ["file.exportCsv", "file.exportHtml", "file.exportPdf"].iter().any(|c| self.allowed(c)),
+        }
     }
 
     /// One-time context setup: start cataloging the machine's fonts, then install the fonts and
@@ -449,10 +493,10 @@ impl SheetApp {
         {
             self.commit_text_box_edit()?;
         }
-        if self.host_locked() && UI_COMMANDS_BLOCKED.contains(&id) {
+        if UI_COMMANDS_OFF.contains(&id) && !self.allowed(id) {
             return Err(gridcraft_engine::EngineError::HostLocked(id.to_string()).to_string());
         }
-        if (!self.host_locked() || UI_COMMANDS_ALLOWED.contains(&id))
+        if self.allowed(id)
             && let Some(r) = self.run_ui_command(id, &params)
         {
             return r;
@@ -794,7 +838,7 @@ impl SheetApp {
             self.message = Some(("Text Box".into(), clean_error(&e)));
             return;
         }
-        if self.host_locked() && DIALOGS_BLOCKED.contains(&name) {
+        if self.host_locked() && (DIALOGS_LOCKED.contains(&name) || DIALOGS_GATED.iter().any(|(d, c)| *d == name && !self.allowed(c))) {
             return;
         }
         match name {
@@ -836,7 +880,7 @@ impl SheetApp {
     /// Opens the File tab's Backstage view on `page`, committing a cell still being edited first
     /// (File actions work on the whole workbook). A draft that can't be committed keeps the sheet.
     pub fn open_backstage(&mut self, page: backstage::Page) {
-        let page = if self.host_locked() && !BACKSTAGE_PAGES_LOCKED.contains(&page) { backstage::Page::Info } else { page };
+        let page = if self.page_allowed(page) { page } else { backstage::Page::Info };
         if !self.commit_edit(0, 0, false, false) {
             return;
         }

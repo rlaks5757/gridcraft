@@ -262,6 +262,8 @@ pub struct Session {
     pub show_all_notes: bool,
     /// PPM host lock ([`hostlock`]): only classified commands run. Set once, never cleared.
     host_locked: bool,
+    /// The parent's overrides for the locked session; clones share their state.
+    host_policy: hostlock::Policy,
 }
 
 impl Session {
@@ -316,8 +318,8 @@ impl Session {
     }
 
     pub fn commands(&self) -> Vec<CommandInfo> {
-        let locked = self.host_locked();
-        command_specs().iter().filter(|c| !locked || hostlock::listed(c.id)).map(|c| c.info(self)).collect()
+        let policy = self.host_policy();
+        command_specs().iter().filter(|c| hostlock::listed(policy.as_ref(), c.id)).map(|c| c.info(self)).collect()
     }
 
     /// Locks the session to the PPM host's rules ([`hostlock`]). There is no way back.
@@ -329,11 +331,24 @@ impl Session {
         self.host_locked || hostlock::HOST_BUILD
     }
 
+    /// The overrides of a locked session (`None` when not locked); clones share their state.
+    pub fn host_policy(&self) -> Option<hostlock::Policy> {
+        self.host_locked().then(|| self.host_policy.clone())
+    }
+
+    /// The parent's policy for the workbook it opens: `(command id, on)` pairs for the commands
+    /// that differ from their grade. Nothing happens in an unlocked session.
+    pub fn set_policy(&self, overrides: &[(String, bool)]) {
+        if self.host_locked() {
+            self.host_policy.set(overrides);
+        }
+    }
+
     /// Runs a command by id. Undoable commands record a history step when the workbook changed.
     /// Panics inside commands are caught and reported; the workbook is restored.
     pub fn execute(&mut self, id: &str, params: Json) -> Result<Json> {
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.to_string()))?;
-        if self.host_locked() && !hostlock::permits(id, &params) {
+        if !hostlock::permits(self.host_policy().as_ref(), id, &params) {
             return Err(EngineError::HostLocked(id.to_string()));
         }
         if let Err(why) = (spec.enabled)(self) {

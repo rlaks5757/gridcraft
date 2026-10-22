@@ -132,17 +132,20 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 if __k.clicked() {
                     app.open_dialog("commandSearch", json!({}));
                 }
-                // Host lock: no exports or copies; the host stores the workbook.
-                if !app.host_locked() {
+                // Host lock: exports and copies only with their commands on; the host stores the workbook.
+                let copies = [
+                    ("Save a Copy as Excel Workbook (.xlsx)…", "xlsx", "file.saveAs"),
+                    ("Export as CSV…", "csv", "file.exportCsv"),
+                    ("Export as Web Page (.html)…", "html", "file.exportHtml"),
+                ];
+                if app.allowed("file.exportPdf") || copies.iter().any(|c| app.allowed(c.2)) {
                     let share = small_button(ui, Icon::Share, "Share", "Share: export or save a copy", true);
                     egui::Popup::menu(&share).show(|ui| {
-                        if ui.button("Export as PDF…").clicked() {
+                        if app.allowed("file.exportPdf") && ui.button("Export as PDF…").clicked() {
                             app.run_or_alert("file.exportPdf", json!({}));
                         }
-                        for (label, fmt) in
-                            [("Save a Copy as Excel Workbook (.xlsx)…", "xlsx"), ("Export as CSV…", "csv"), ("Export as Web Page (.html)…", "html")]
-                        {
-                            if ui.button(label).clicked() {
+                        for (label, fmt, id) in copies {
+                            if app.allowed(id) && ui.button(label).clicked() {
                                 app.open_dialog("saveCopy", json!({"format": fmt}));
                             }
                         }
