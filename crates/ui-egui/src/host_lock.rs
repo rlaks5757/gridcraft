@@ -115,6 +115,19 @@ mod tests {
         assert!(missing.is_empty(), "commands without a Korean label: {missing:?}");
     }
 
+    /// The command search shows the menu path a group at a time: every group name has a Korean entry.
+    #[test]
+    fn every_menu_group_has_a_korean_name() {
+        let list: serde_json::Value = serde_json::from_str(&commands_json()).unwrap();
+        let mut missing = std::collections::BTreeSet::new();
+        for part in list["commands"].as_array().unwrap().iter().flat_map(|c| c["location"].as_array().unwrap()).filter_map(|p| p.as_str()) {
+            if crate::i18n::Language::Ko.tr(part) == part {
+                missing.insert(part.to_string());
+            }
+        }
+        assert!(missing.is_empty(), "menu names without a Korean entry: {missing:?}");
+    }
+
     #[test]
     fn app_command_lists_are_sorted_and_disjoint() {
         for list in [crate::UI_COMMANDS_OFF, crate::UI_COMMANDS_ALLOWED] {
