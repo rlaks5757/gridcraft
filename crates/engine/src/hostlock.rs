@@ -316,7 +316,6 @@ pub const ALLOWED: &[&str] = &[
     "review.nextComment",
     "review.previousComment",
     "review.protectSheet",
-    "review.protectWorkbook",
     "review.replyComment",
     "review.resolveComment",
     "review.showAllNotes",
@@ -387,7 +386,8 @@ pub const ALLOWED: &[&str] = &[
     "view.zoomToSelection",
     "window.activate",
 ];
-/// Commands a locked session never runs.
+/// Commands a locked session never runs. `review.protectWorkbook` (Protect and Unprotect Workbook)
+/// is here because a password on the structure could lock the parent's copy for everyone else.
 pub const BLOCKED: &[&str] = &[
     "automate.allScripts",
     "automate.deleteScript",
@@ -396,6 +396,7 @@ pub const BLOCKED: &[&str] = &[
     "automate.runScript",
     "file.close",
     "file.new",
+    "review.protectWorkbook",
     "view.macros",
 ];
 /// Commands that are off until the policy turns them on.

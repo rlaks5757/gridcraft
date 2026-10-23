@@ -3198,7 +3198,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "review.protectWorkbook",
       "label": "Protect Workbook",

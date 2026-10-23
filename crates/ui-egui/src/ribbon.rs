@@ -2118,10 +2118,13 @@ fn review(app: &mut SheetApp, ui: &mut Ui) {
             app.open_dialog("protectSheet", json!({}));
         }
     }
-    let __k = big_button(ui, Icon::Book, "Protect\nWorkbook", "Protect Workbook structure", false);
-    control_keytip(app, ui, &__k, "review.protectWorkbook");
-    if __k.clicked() {
-        crate::backstage::protect_workbook(app);
+    // Host lock: Protect/Unprotect Workbook is not offered (the command is locked).
+    if app.allowed("review.protectWorkbook") {
+        let __k = big_button(ui, Icon::Book, "Protect\nWorkbook", "Protect Workbook structure", false);
+        control_keytip(app, ui, &__k, "review.protectWorkbook");
+        if __k.clicked() {
+            crate::backstage::protect_workbook(app);
+        }
     }
     if big_button(ui, Icon::Validation, "Allow Edit\nRanges", "Allow Edit Ranges", false).clicked() {
         app.open_dialog("allowEditRanges", json!({}));

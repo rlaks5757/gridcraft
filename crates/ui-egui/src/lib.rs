@@ -280,9 +280,10 @@ pub const UI_COMMANDS_ALLOWED: &[&str] = &[
     "view.theme",
 ];
 
-/// Dialogs a host-locked app never opens: they pick local workbooks, list files or run scripts.
-/// `saveAs` stays: Save reaches the host through it.
-const DIALOGS_LOCKED: &[&str] = &["agents", "macros", "open", "start"];
+/// Dialogs a host-locked app never opens: they pick local workbooks, list files, run scripts or
+/// protect the workbook structure (`review.protectWorkbook` is locked). `saveAs` stays: Save
+/// reaches the host through it.
+const DIALOGS_LOCKED: &[&str] = &["agents", "macros", "open", "protectWorkbook", "start", "unprotectWorkbook"];
 
 /// The command whose switch decides whether the host-locked app opens the dialog `name` (`None`:
 /// always). `saveCopy` is every export and Save As in one dialog: its format picks the switch.
@@ -437,13 +438,14 @@ impl SheetApp {
         self.host_locked() && host_lock::grade(id).is_some() && !self.allowed(id)
     }
 
-    /// May the File tab show `page`? Info and Options stay; Home, New and Open are the start
-    /// screens; Save As, Print and Export need their commands.
+    /// May the File tab show `page`? Options stays; Info (properties and Protect Workbook) and
+    /// Home, New and Open (the start screens) are not for a host-locked app; Save As, Print and
+    /// Export need their commands.
     pub fn page_allowed(&self, page: backstage::Page) -> bool {
         use backstage::Page;
         match page {
-            Page::Info | Page::Options => true,
-            Page::Home | Page::New | Page::Open => !self.host_locked(),
+            Page::Options => true,
+            Page::Info | Page::Home | Page::New | Page::Open => !self.host_locked(),
             Page::SaveAs => self.allowed("file.saveAs"),
             Page::Print => self.allowed("file.print"),
             Page::Export => ["file.exportCsv", "file.exportHtml", "file.exportPdf"].iter().any(|c| self.allowed(c)),
@@ -910,7 +912,13 @@ impl SheetApp {
     /// Opens the File tab's Backstage view on `page`, committing a cell still being edited first
     /// (File actions work on the whole workbook). A draft that can't be committed keeps the sheet.
     pub fn open_backstage(&mut self, page: backstage::Page) {
-        let page = if self.page_allowed(page) { page } else { backstage::Page::Info };
+        let page = if self.page_allowed(page) {
+            page
+        } else if self.page_allowed(backstage::Page::Info) {
+            backstage::Page::Info
+        } else {
+            backstage::Page::Options
+        };
         if !self.commit_edit(0, 0, false, false) {
             return;
         }

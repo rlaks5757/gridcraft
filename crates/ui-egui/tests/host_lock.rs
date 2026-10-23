@@ -154,18 +154,18 @@ fn save_reaches_the_host_as_xlsx_and_nothing_else_does() {
 }
 
 #[test]
-fn the_file_tab_shows_only_info_save_and_options() {
+fn the_file_tab_shows_only_save_and_options() {
     let (mut h, _, downloads, _) = locked_harness();
     h.get_by_label("File").click();
     h.run_steps(3);
-    assert_eq!(h.state().backstage.as_ref().map(|b| b.page.id()), Some("info"));
-    for label in ["Home", "New", "Open", "Save As", "Print", "Export", "Close"] {
+    assert_eq!(h.state().backstage.as_ref().map(|b| b.page.id()), Some("options"));
+    for label in ["Home", "New", "Open", "Info", "Save As", "Print", "Export", "Close"] {
         assert!(h.query_by_role_and_label(egui::accesskit::Role::Button, label).is_none(), "{label} is in the File tab");
     }
-    for page in ["home", "new", "open", "saveAs", "print", "export"] {
+    for page in ["home", "new", "open", "info", "saveAs", "print", "export"] {
         h.state_mut().run("ui.backstage", json!({"page": page})).unwrap();
         h.run_steps(2);
-        assert_eq!(h.state().backstage.as_ref().map(|b| b.page.id()), Some("info"), "{page} opened");
+        assert_eq!(h.state().backstage.as_ref().map(|b| b.page.id()), Some("options"), "{page} opened");
     }
     h.get_by_role_and_label(egui::accesskit::Role::Button, "Save").click();
     h.run_steps(3);
@@ -280,12 +280,18 @@ fn download_and_print_and_links_follow_the_policy() {
 fn overrides_turn_commands_and_pages_on_and_off() {
     let (mut h, ..) = {
         let hits = Arc::new(AtomicUsize::new(0));
-        (harness_with(true, &[("file.print", true), ("file.exportPdf", true), ("home.bold", false)], counting(&hits, &Downloads::default(), Inbox::default())),)
+        (harness_with(true, &[("file.print", true), ("file.exportPdf", true), ("home.bold", false), ("review.protectWorkbook", true)], counting(&hits, &Downloads::default(), Inbox::default())),)
     };
     assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Print));
     assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Export));
     assert!(!h.state().page_allowed(gridcraft_ui_egui::backstage::Page::SaveAs));
     assert!(!h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Open));
+    assert!(!h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Info), "Info is hidden in PPM");
+    assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Options));
+    // Protect Workbook stays locked whatever the policy says.
+    assert!(!h.state().allowed("review.protectWorkbook"));
+    assert!(h.state_mut().run("review.protectWorkbook", json!({"on": true})).is_err());
+    assert!(h.state_mut().run("review.protectWorkbook", json!({"on": false})).is_err());
     assert!(!h.state().allowed("home.bold") && h.state().allowed("home.italic"));
     assert!(h.state_mut().run("home.bold", json!({})).is_err());
     assert!(h.state_mut().run("file.close", json!({})).is_err(), "locked stays locked");

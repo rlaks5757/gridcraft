@@ -177,7 +177,7 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
             if !locked {
                 nav_separator(ui, nav_text);
             }
-            if nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
+            if app.page_allowed(Page::Info) && nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
                 out.page = Some(Page::Info);
             }
             if nav_item(ui, Icon::Save, lang.tr("Save"), false, nav_text, nav_sel).clicked() {
