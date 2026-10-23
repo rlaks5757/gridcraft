@@ -47,6 +47,21 @@ pub fn policy_overrides(policy_json: &str) -> Vec<(String, bool)> {
     overrides.iter().filter_map(|(id, on)| Some((id.clone(), on.as_bool()?))).collect()
 }
 
+/// The longest `id` of a `gridcraft:export` request.
+pub const EXPORT_ID_MAX: usize = 128;
+
+/// The id of an export request when it is usable: not empty and at most [`EXPORT_ID_MAX`] characters.
+#[cfg_attr(not(feature = "ppm-host"), allow(dead_code))]
+pub fn export_id(id: &str) -> Option<String> {
+    (!id.is_empty() && id.chars().count() <= EXPORT_ID_MAX).then(|| id.to_string())
+}
+
+/// The workbook as GridCraft JSON text (the `.json` file format), for `gridcraft:exported`.
+#[cfg_attr(not(feature = "ppm-host"), allow(dead_code))]
+pub fn workbook_json(wb: &gridcraft_engine::model::Workbook) -> Result<Vec<u8>, String> {
+    gridcraft_engine::io::save_bytes_as(wb, "workbook.json", gridcraft_engine::io::FileKind::Json).map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -106,6 +121,31 @@ mod tests {
     fn four_thousand_overrides_are_all_taken() {
         let body: Vec<String> = (0..4000).map(|i| format!("\"cmd.{i}\": true")).collect();
         assert_eq!(policy_overrides(&format!("{{\"overrides\": {{{}}}}}", body.join(","))).len(), 4000);
+    }
+
+    #[test]
+    fn an_export_id_is_one_to_128_characters() {
+        assert_eq!(export_id("a"), Some("a".to_string()));
+        assert_eq!(export_id(&"가".repeat(EXPORT_ID_MAX)).map(|s| s.chars().count()), Some(EXPORT_ID_MAX));
+        assert_eq!(export_id(""), None);
+        assert_eq!(export_id(&"a".repeat(EXPORT_ID_MAX + 1)), None);
+    }
+
+    #[test]
+    fn the_exported_workbook_loads_again() {
+        let mut wb = gridcraft_engine::model::Workbook::new();
+        wb.sheets[0] = std::sync::Arc::new({
+            let mut sh = (*wb.sheets[0]).clone();
+            sh.cells
+                .set(gridcraft_engine::core::CellRef::new(0, 0), gridcraft_engine::model::Cell::value(gridcraft_engine::core::Value::Number(3.5)));
+            sh
+        });
+        let json = workbook_json(&wb).expect("json");
+        let (back, _) = gridcraft_engine::io::open_bytes("x.json", &json).expect("open");
+        assert_eq!(
+            back.sheets[0].cells.get(gridcraft_engine::core::CellRef::new(0, 0)).map(|c| c.value.clone()),
+            Some(gridcraft_engine::core::Value::Number(3.5))
+        );
     }
 
     #[test]

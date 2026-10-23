@@ -13,6 +13,11 @@
 //!   as PDF. The parent stores it and reports failures itself.
 //! - `gridcraft:dirty` (to the parent): `{ dirty }` whenever unsaved changes appear or go away.
 //! - `gridcraft:failed` (to the parent): `{ error }` when the app couldn't start.
+//! - `gridcraft:export` (from the parent, PPM build only): `{ id }`, a request for the active
+//!   workbook as GridCraft JSON, as it is now (unsaved edits included).
+//! - `gridcraft:exported` (to the parent): `{ id, name, bytes }` (a transferred `ArrayBuffer` of
+//!   JSON text) answering `gridcraft:export`; or `gridcraft:export-failed`: `{ id, error }`.
+//!   Neither counts as a save: the workbook stays as dirty as it was.
 //!
 //! Only the parent window on the page's own origin is heard or answered. In host mode the page
 //! starts with an empty workbook instead of a sample, and the parent guards leaving the page.
@@ -43,6 +48,9 @@ pub struct Bridge {
     reported: Rc<Cell<Option<bool>>>,
     /// The overrides of the latest `gridcraft:open`, until the next frame applies them.
     policy: Rc<RefCell<Option<Vec<(String, bool)>>>>,
+    /// Ids of `gridcraft:export` requests the next frame answers.
+    #[cfg(feature = "ppm-host")]
+    exports: Rc<RefCell<Vec<String>>>,
 }
 
 impl Bridge {
@@ -58,7 +66,16 @@ impl Bridge {
         if !crate::gate::same_origin(parent.location().origin().ok().as_deref(), &origin) {
             return None;
         }
-        Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default(), policy: Rc::default() })
+        Some(Self {
+            window,
+            parent,
+            origin,
+            saved: Rc::default(),
+            reported: Rc::default(),
+            policy: Rc::default(),
+            #[cfg(feature = "ppm-host")]
+            exports: Rc::default(),
+        })
     }
 
     /// Send saved and exported files to the parent instead of downloading them, and hear files
@@ -101,9 +118,36 @@ impl Bridge {
                 doc.title = name.clone();
             }
         }
+        #[cfg(feature = "ppm-host")]
+        self.answer_exports(app);
         let dirty = app.session.documents().iter().any(|d| d.is_dirty());
         if self.reported.get() != Some(dirty) && self.send(&[("type", "gridcraft:dirty".into()), ("dirty", dirty.into())]) {
             self.reported.set(Some(dirty));
+        }
+    }
+
+    /// Answers the pending `gridcraft:export` requests with the active workbook as JSON.
+    #[cfg(feature = "ppm-host")]
+    fn answer_exports(&self, app: &SheetApp) {
+        let ids = std::mem::take(&mut *self.exports.borrow_mut());
+        for id in ids {
+            let json = app.session.active().ok_or_else(|| "no open workbook".to_string()).and_then(|doc| crate::gate::workbook_json(&doc.wb));
+            let sent = match json {
+                Ok(json) => {
+                    let buffer = js_sys::Uint8Array::from(json.as_slice()).buffer();
+                    message(&[
+                        ("type", "gridcraft:exported".into()),
+                        ("id", id.as_str().into()),
+                        ("name", "workbook.json".into()),
+                        ("bytes", buffer.clone().into()),
+                    ])
+                    .is_some_and(|m| self.parent.post_message_with_transfer(&m, &self.origin, &js_sys::Array::of1(&buffer)).is_ok())
+                }
+                Err(error) => self.send(&[("type", "gridcraft:export-failed".into()), ("id", id.as_str().into()), ("error", error.as_str().into())]),
+            };
+            if !sent {
+                log::error!("couldn't answer the export request {id}");
+            }
         }
     }
 
@@ -129,12 +173,22 @@ impl Bridge {
     fn listen(&self, inbox: Inbox, ctx: egui::Context) {
         let parent = self.parent.clone();
         let policy = self.policy.clone();
+        #[cfg(feature = "ppm-host")]
+        let exports = self.exports.clone();
         let origin = self.origin.clone();
         let on_message = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |event: web_sys::MessageEvent| {
             if event.origin() != origin || !event.source().is_some_and(|s| js_sys::Object::is(&s, &parent)) {
                 return;
             }
             let data = event.data();
+            #[cfg(feature = "ppm-host")]
+            if string(&data, "type").as_deref() == Some("gridcraft:export") {
+                if let Some(id) = string(&data, "id").and_then(|id| crate::gate::export_id(&id)) {
+                    exports.borrow_mut().push(id);
+                    ctx.request_repaint();
+                }
+                return;
+            }
             if string(&data, "type").as_deref() != Some("gridcraft:open") {
                 return;
             }
