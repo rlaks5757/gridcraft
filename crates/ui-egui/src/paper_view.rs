@@ -175,6 +175,17 @@ pub(crate) fn paint_pages(
     quads
 }
 
+/// The header/footer codes of the page-number presets: "Page 1", "Page 1 of ?", and the same after
+/// the sheet name or file name. They are worded in the interface language, as the preset labels are
+/// (Korean follows Excel's "1페이지"); every other language keeps the English words.
+pub(crate) fn page_presets(language: crate::i18n::Language) -> [&'static str; 4] {
+    if language == crate::i18n::Language::Ko {
+        ["&C&P페이지", "&C&P/&N 페이지", "&C&A, &P페이지", "&C&F, &P페이지"]
+    } else {
+        ["&CPage &P", "&CPage &P of &N", "&C&A, Page &P", "&C&F, Page &P"]
+    }
+}
+
 fn tr<'a>(app: &SheetApp, s: &'a str) -> &'a str {
     app.ui.language.tr(s)
 }
@@ -852,14 +863,15 @@ pub fn ribbon_tab(app: &mut SheetApp, ui: &mut egui::Ui) {
     for (label, part) in [("Header", false), ("Footer", true)] {
         let r = big_button(ui, if part { Icon::Footer } else { Icon::Header }, label, label, true);
         egui::Popup::menu(&r).show(|ui| {
+            let specs = page_presets(app.ui.language);
             let presets: [(String, &str); 7] = [
                 (tr(app, "(none)").to_string(), ""),
-                ("Page 1".into(), "&CPage &P"),
-                ("Page 1 of ?".into(), "&CPage &P of &N"),
+                (tr(app, "Page 1").into(), specs[0]),
+                (tr(app, "Page 1 of ?").into(), specs[1]),
                 (sheet_name.clone(), "&C&A"),
                 (file.clone(), "&C&F"),
-                (format!("{sheet_name}, Page 1"), "&C&A, Page &P"),
-                (format!("{file}, Page 1"), "&C&F, Page &P"),
+                (format!("{sheet_name}, {}", tr(app, "Page 1")), specs[2]),
+                (format!("{file}, {}", tr(app, "Page 1")), specs[3]),
             ];
             for (text, spec) in presets {
                 if ui.button(text).clicked() {
@@ -920,6 +932,14 @@ mod tests {
     use super::*;
 
     const A4: (f32, f32) = (595.0, 842.0);
+
+    #[test]
+    fn page_presets_use_korean_codes_only_in_korean() {
+        use crate::i18n::Language;
+        assert_eq!(page_presets(Language::En)[0], "&CPage &P");
+        assert_eq!(page_presets(Language::Ko), ["&C&P페이지", "&C&P/&N 페이지", "&C&A, &P페이지", "&C&F, &P페이지"]);
+        assert_eq!(page_presets(Language::Ja), page_presets(Language::En));
+    }
 
     #[test]
     fn drag_maps_to_margins_and_clamps_inside_the_page() {

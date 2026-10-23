@@ -304,6 +304,95 @@ pub fn bind_family(fonts: &mut egui::FontDefinitions, family: &str) -> Vec<Strin
     bind_faces(fonts, family, &faces_of(family))
 }
 
+/// The egui family name for one role of an embedded Office-compatible family:
+/// `office:{family}:{b|n}{i|n}`. A prefix of its own, so no installed font can collide with it.
+pub fn office_role_key(family: &str, bold: bool, italic: bool) -> String {
+    format!("office:{family}:{}{}", if bold { 'b' } else { 'n' }, if italic { 'i' } else { 'n' })
+}
+
+/// The embedded family a document font name is drawn with: the Office-compatible face the server's
+/// PDF renderer uses for it. The name is matched exactly and case-insensitively against one list
+/// (the same one the viewer and the render worker use): Calibri, Aptos and Segoe UI give Carlito;
+/// Cambria, Constantia, Palatino (Linotype), Book Antiqua, Georgia and Garamond give Caladea; Arial, Arial Narrow, Helvetica and Helvetica Neue give Liberation Sans; Times and Times
+/// New Roman give Liberation Serif; Courier, Courier New, Consolas and Lucida Console give Liberation Mono; the
+/// Korean document names give NanumGothic; Inter gives Inter (not embedded here: the caller falls
+/// back to Carlito). Every other name gives Carlito, and Hangul in any of them falls back to
+/// NanumGothic.
+pub fn office_family(name: &str) -> &'static str {
+    match name.trim().to_lowercase().as_str() {
+        "cambria" | "constantia" | "palatino" | "palatino linotype" | "book antiqua" | "georgia" | "garamond" => "Caladea",
+        "arial" | "arial narrow" | "helvetica" | "helvetica neue" => "Liberation Sans",
+        "times" | "times new roman" => "Liberation Serif",
+        "courier" | "courier new" | "consolas" | "lucida console" => "Liberation Mono",
+        "inter" => "Inter",
+        "맑은 고딕"
+        | "malgun gothic"
+        | "굴림"
+        | "gulim"
+        | "굴림체"
+        | "gulimche"
+        | "새굴림"
+        | "new gulim"
+        | "돋움"
+        | "dotum"
+        | "돋움체"
+        | "dotumche"
+        | "바탕"
+        | "batang"
+        | "바탕체"
+        | "batangche"
+        | "궁서"
+        | "gungsuh"
+        | "궁서체"
+        | "gungsuhche"
+        | "함초롬바탕"
+        | "hcr batang"
+        | "함초롬돋움"
+        | "hcr dotum"
+        | "나눔고딕"
+        | "nanumgothic"
+        | "나눔명조"
+        | "nanummyeongjo"
+        | "noto sans kr"
+        | "noto sans cjk kr"
+        | "noto serif kr"
+        | "apple sd gothic neo" => "NanumGothic",
+        _ => "Carlito",
+    }
+}
+
+/// Bind one embedded family's faces (`(style, bytes)`: Regular, Bold, Italic, Bold Italic) into
+/// `fonts`, one egui family per cell role, and return the role keys that are now bound. A style the
+/// family lacks uses its Regular face. Each chain ends with `base` (egui's defaults) and `tail`
+/// (the Korean face), so a glyph the face lacks (Hangul, emoji) still draws. A family with no
+/// Regular face binds nothing.
+pub fn bind_embedded(
+    fonts: &mut egui::FontDefinitions,
+    family: &str,
+    faces: &[(&str, &'static [u8])],
+    base: &[String],
+    tail: &[String],
+) -> Vec<String> {
+    let Some(regular) = faces.iter().find(|(style, _)| *style == "Regular") else { return Vec::new() };
+    let mut bound = Vec::new();
+    for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {
+        let style = match (bold, italic) {
+            (false, false) => "Regular",
+            (true, false) => "Bold",
+            (false, true) => "Italic",
+            (true, true) => "Bold Italic",
+        };
+        let face = faces.iter().find(|(s, _)| *s == style).unwrap_or(regular);
+        let key = format!("office-src:{family}:{}", face.0);
+        fonts.font_data.entry(key.clone()).or_insert_with(|| std::sync::Arc::new(egui::FontData::from_static(face.1)));
+        let role = office_role_key(family, bold, italic);
+        let chain: Vec<String> = std::iter::once(key).chain(base.iter().cloned()).chain(tail.iter().cloned()).collect();
+        fonts.families.insert(egui::FontFamily::Name(role.clone().into()), chain);
+        bound.push(role);
+    }
+    bound
+}
+
 /// The role families currently bound to font data. `cell_family` consults this, so it never names a
 /// family egui hasn't been given.
 static BOUND: OnceLock<std::sync::RwLock<HashSet<String>>> = OnceLock::new();
@@ -312,9 +401,18 @@ fn bound() -> &'static std::sync::RwLock<HashSet<String>> {
     BOUND.get_or_init(|| std::sync::RwLock::new(HashSet::new()))
 }
 
+/// Bumped by every [`set_bound`], so a cache of answers that depend on the bound set can tell it is stale.
+static BOUND_GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// The number of times the bound set has been replaced.
+pub fn bound_generation() -> u64 {
+    BOUND_GENERATION.load(std::sync::atomic::Ordering::Acquire)
+}
+
 /// Record the role families a freshly built [`egui::FontDefinitions`] bound.
 pub fn set_bound(keys: impl IntoIterator<Item = String>) {
     *bound().write().unwrap_or_else(|e| e.into_inner()) = keys.into_iter().collect();
+    BOUND_GENERATION.fetch_add(1, std::sync::atomic::Ordering::Release);
 }
 
 /// Is this exact role family bound to font data?

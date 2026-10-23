@@ -117,7 +117,18 @@ impl Language {
     /// A label that needs two translations (Home's text "Orientation" vs Page Layout's print
     /// "Orientation") is keyed `context|label`: English shows only the part after the `|`.
     pub fn tr(self, text: &str) -> &str {
-        let translated = match self {
+        self.lookup(text).unwrap_or_else(|| text.rsplit_once('|').map_or(text, |(_, label)| label))
+    }
+
+    /// Like [`tr`](Self::tr) for text that may already have data filled in (a URL, a sheet name, a
+    /// file name): a catalog entry is translated, anything else comes back untouched, so a `|`
+    /// in the data is never taken for a `context|label` separator.
+    pub fn tr_exact(self, text: &str) -> &str {
+        self.lookup(text).unwrap_or(text)
+    }
+
+    fn lookup(self, text: &str) -> Option<&str> {
+        match self {
             Self::En => None,
             Self::Es => es::translate(text),
             Self::Ja => JAPANESE.iter().find(|(english, _)| *english == text).map(|(_, translated)| *translated),
@@ -129,8 +140,7 @@ impl Language {
             Self::Cs => cs::translate(text),
             Self::Fr => fr::translate(text),
             Self::Sr => sr::translate(text),
-        };
-        translated.unwrap_or_else(|| text.rsplit_once('|').map_or(text, |(_, label)| label))
+        }
     }
 }
 
@@ -161,6 +171,11 @@ pub fn saved_language(ui_json: &serde_json::Value) -> Option<Language> {
 /// `Ui` (not the app) read it to translate their labels; [`set_current`] writes it once per frame.
 fn lang_key() -> egui::Id {
     egui::Id::new("gridcraft.language")
+}
+
+/// Translates `text` into the language the current frame draws in (for call sites that only hold a `Ui`).
+pub fn t<'a>(ui: &egui::Ui, text: &'a str) -> &'a str {
+    current(ui.ctx()).tr(text)
 }
 
 /// The language the current frame is drawing in. `En` when unset.
@@ -713,5 +728,45 @@ mod tests {
         for l in Language::ALL {
             assert_eq!(Language::parse(l.code()), Some(l));
         }
+    }
+
+    /// `{}` / `{name}` slots are filled in by the caller after translation, so a Korean entry must
+    /// keep exactly the slots of its English key.
+    #[test]
+    fn korean_entries_keep_their_placeholders() {
+        fn slots(text: &str) -> Vec<String> {
+            let mut out: Vec<String> = text.split('{').skip(1).filter_map(|rest| rest.split_once('}').map(|(name, _)| name.to_owned())).collect();
+            out.sort();
+            out
+        }
+        let mut checked = 0;
+        for line in include_str!("i18n/ko.rs").lines() {
+            let Some((key, value)) = line.trim().strip_prefix('"').and_then(|l| l.split_once("\" => \"")) else { continue };
+            let Some(value) = value.strip_suffix("\",") else { continue };
+            assert_eq!(slots(key), slots(value), "placeholder mismatch: {key}");
+            checked += 1;
+        }
+        assert!(checked > 500, "only {checked} Korean entries were parsed");
+    }
+}
+
+#[cfg(test)]
+mod exact_tests {
+    use super::*;
+
+    #[test]
+    fn filled_in_text_keeps_its_pipes_but_catalog_entries_still_translate() {
+        let filled = "Sheets: a|b";
+        for lang in Language::ALL {
+            assert_eq!(lang.tr_exact(filled), filled);
+        }
+        assert_eq!(Language::En.tr("Sheet Options|View"), "View");
+        assert_eq!(Language::Ko.tr_exact("Close"), Language::Ko.tr("Close"));
+    }
+
+    #[test]
+    fn the_missing_styles_open_warning_is_translated_for_korean_only() {
+        assert_eq!(Language::Ko.tr_exact("no styles part"), "서식 정보가 없어 기본 서식으로 엽니다");
+        assert_eq!(Language::En.tr_exact("no styles part"), "no styles part");
     }
 }

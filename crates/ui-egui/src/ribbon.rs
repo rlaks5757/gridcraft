@@ -52,21 +52,24 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
         ui.horizontal_centered(|ui| {
             ui.add_space(TITLE_LEFT_PAD);
             // AutoSave toggle (saves after each change when the workbook has a file).
-            ui.label(egui::RichText::new("AutoSave").font(theme::ui_font(12.5)).color(t.text_dim));
-            let on = app.grid.autosave();
-            let (r, resp) = ui.allocate_exact_size(vec2(30.0, 16.0), Sense::click());
-            ui.painter().rect_filled(r, 8.0, if on { t.accent } else { Color32::TRANSPARENT });
-            ui.painter().rect_stroke(r, 8.0, Stroke::new(1.0, if on { t.accent } else { t.text_dim }), StrokeKind::Inside);
-            let knob = if on { pos2(r.right() - 8.0, r.center().y) } else { pos2(r.left() + 8.0, r.center().y) };
-            ui.painter().circle_filled(knob, 5.0, if on { Color32::WHITE } else { t.text_dim });
-            if resp.on_hover_text("AutoSave: save after every change (workbooks saved to a file)").clicked() {
-                app.grid.toggle_autosave();
-            }
-            ui.add_space(6.0);
-            let __k = icon_button(ui, Icon::Home, t.text_dim, "Home", vec2(26.0, ch));
-            control_keytip(app, ui, &__k, "start");
-            if __k.clicked() {
-                app.open_dialog("start", json!({}));
+            // Host lock: no AutoSave, and no Home page (it lists and opens files).
+            if !app.host_locked() {
+                ui.label(egui::RichText::new(crate::i18n::t(ui, "AutoSave")).font(theme::ui_font(12.5)).color(t.text_dim));
+                let on = app.grid.autosave();
+                let (r, resp) = ui.allocate_exact_size(vec2(30.0, 16.0), Sense::click());
+                ui.painter().rect_filled(r, 8.0, if on { t.accent } else { Color32::TRANSPARENT });
+                ui.painter().rect_stroke(r, 8.0, Stroke::new(1.0, if on { t.accent } else { t.text_dim }), StrokeKind::Inside);
+                let knob = if on { pos2(r.right() - 8.0, r.center().y) } else { pos2(r.left() + 8.0, r.center().y) };
+                ui.painter().circle_filled(knob, 5.0, if on { Color32::WHITE } else { t.text_dim });
+                if resp.on_hover_text(crate::i18n::t(ui, "AutoSave: save after every change (workbooks saved to a file)")).clicked() {
+                    app.grid.toggle_autosave();
+                }
+                ui.add_space(6.0);
+                let __k = icon_button(ui, Icon::Home, t.text_dim, "Home", vec2(26.0, ch));
+                control_keytip(app, ui, &__k, "start");
+                if __k.clicked() {
+                    app.open_dialog("start", json!({}));
+                }
             }
             if icon_button(ui, Icon::Save, t.text_dim, "Save (⌘S)", vec2(26.0, ch)).clicked()
                 // File operations must include the cell the user is still editing (as the File > Save menu item already does).
@@ -84,10 +87,10 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 let labels: Vec<String> =
                     app.session.active().map(|d| d.undo.iter().rev().take(20).map(|e| e.label.clone()).collect()).unwrap_or_default();
                 if labels.is_empty() {
-                    ui.label("Can't Undo");
+                    ui.label(crate::i18n::t(ui, "Can't Undo"));
                 }
                 for (i, l) in labels.iter().enumerate() {
-                    if ui.button(format!("Undo {l}")).clicked() {
+                    if ui.button(app.ui.language.tr("Undo {l}").replacen("{l}", app.ui.language.tr(l), 1)).clicked() {
                         app.run_or_alert("edit.undo", json!({"steps": i + 1}));
                     }
                 }
@@ -104,11 +107,11 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                     ("Sort A to Z", "data.sortAscending"),
                     ("Calculate Now", "formulas.calculateNow"),
                 ] {
-                    if ui.button(label).clicked() {
+                    if app.allowed(id) && ui.button(crate::i18n::t(ui, label)).clicked() {
                         app.run_or_alert(id, json!({}));
                     }
                 }
-                if ui.button("Print…").clicked() {
+                if app.allowed("file.print") && ui.button(crate::i18n::t(ui, "Print…")).clicked() {
                     app.print_now(json!({}));
                 }
             });
@@ -129,19 +132,32 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 if __k.clicked() {
                     app.open_dialog("commandSearch", json!({}));
                 }
-                let share = small_button(ui, Icon::Share, "Share", "Share: export or save a copy", true);
-                egui::Popup::menu(&share).show(|ui| {
-                    if ui.button("Export as PDF…").clicked() {
-                        app.run_or_alert("file.exportPdf", json!({}));
-                    }
-                    for (label, fmt) in
-                        [("Save a Copy as Excel Workbook (.xlsx)…", "xlsx"), ("Export as CSV…", "csv"), ("Export as Web Page (.html)…", "html")]
-                    {
-                        if ui.button(label).clicked() {
-                            app.open_dialog("saveCopy", json!({"format": fmt}));
+                // Host lock: exports and copies only with their commands on; the host stores the workbook.
+                let copies = [
+                    ("Save a Copy as Excel Workbook (.xlsx)…", "xlsx", "file.saveAs"),
+                    ("Export as CSV…", "csv", "file.exportCsv"),
+                    ("Export as Web Page (.html)…", "html", "file.exportHtml"),
+                ];
+                if app.allowed("file.exportPdf") || copies.iter().any(|c| app.allowed(c.2)) {
+                    let share = small_button(ui, Icon::Share, "Share", "Share: export or save a copy", true);
+                    egui::Popup::menu(&share).show(|ui| {
+                        if app.allowed("file.exportPdf") && ui.button(crate::i18n::t(ui, "Export as PDF…")).clicked() {
+                            app.run_or_alert("file.exportPdf", json!({}));
                         }
-                    }
-                });
+                        for (label, fmt, id) in copies {
+                            if app.allowed(id) && ui.button(crate::i18n::t(ui, label)).clicked() {
+                                if !app.host_locked() {
+                                    app.open_dialog("saveCopy", json!({"format": fmt}));
+                                } else if fmt == "xlsx" {
+                                    // No file picker here: the workbook goes to the host as in Save As.
+                                    app.open_dialog("saveAs", json!({}));
+                                } else {
+                                    crate::backstage::export_as(app, fmt);
+                                }
+                            }
+                        }
+                    });
+                }
                 let __k = icon_button(ui, Icon::Comment, t.text_dim, "Comments", vec2(28.0, ch));
                 control_keytip(app, ui, &__k, "comments");
                 if __k.clicked() {
@@ -202,15 +218,17 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                             let ul = Rect::from_center_size(pos2(r.center().x, r.bottom() - 3.0), vec2(tw.clamp(20.0, 40.0), 3.0));
                             ui.painter().rect_filled(ul, 1.5, t.accent);
                         }
+                        // Host lock: collapsing the ribbon is a command the administrator can switch off.
+                        let can_collapse = app.allowed("view.collapseRibbon");
                         if resp.clicked() {
                             if active && !collapsed {
-                                app.ui.ribbon_collapsed = true;
+                                app.ui.ribbon_collapsed = !can_collapse;
                             } else {
                                 app.ui.ribbon_tab = tab.to_string();
                                 app.ui.ribbon_collapsed = false;
                             }
                         }
-                        if resp.double_clicked() {
+                        if resp.double_clicked() && (can_collapse || collapsed) {
                             app.ui.ribbon_collapsed = !collapsed;
                         }
                         if app.keytips.prefix() == Some("")
@@ -334,6 +352,12 @@ fn keytip(app: &SheetApp, ui: &Ui, sequence: &str, at: egui::Pos2) {
 
 /// Paint the badge for a control that runs command `id`, when the armed prefix matches.
 fn control_keytip(app: &SheetApp, ui: &Ui, response: &egui::Response, id: &str) {
+    // Host lock: a control the administrator switched off stays drawn, washed out; a click on it
+    // is refused without a word by the engine.
+    if app.switched_off(id) {
+        let t = Tokens::get(ui.ctx());
+        ui.painter().rect_filled(response.rect, 3.0, t.ribbon.gamma_multiply(0.7));
+    }
     if let Some(sequence) = keytip_table::control_badge(app.keytips.prefix().unwrap_or_default(), id) {
         keytip(app, ui, sequence, response.rect.center_bottom());
     }
@@ -425,7 +449,7 @@ pub(crate) fn editable_combo(
             });
         }
         let text_id = anchor.id.with(salt).with("__combo_text");
-        let te = ui.add(egui::TextEdit::singleline(&mut st.text).id(text_id).desired_width(220.0).hint_text("Type to filter…"));
+        let te = ui.add(egui::TextEdit::singleline(&mut st.text).id(text_id).desired_width(220.0).hint_text(crate::i18n::t(ui, "Type to filter…")));
         if open_now && !te.has_focus() {
             ui.ctx().memory_mut(|m| m.request_focus(text_id));
             // Select all once focus lands so typing replaces the filter.
@@ -482,6 +506,10 @@ fn menu_items(app: &mut SheetApp, ui: &mut Ui, items: &[(&str, &str, serde_json:
     for (label, id, p) in items {
         if *label == "-" {
             ui.separator();
+            continue;
+        }
+        // Host lock: an entry for a dialog or command the lock never allows is not drawn.
+        if app.entry_hidden(id) {
             continue;
         }
         let lang = app.ui.language;
@@ -657,7 +685,7 @@ fn home(app: &mut SheetApp, ui: &mut Ui) {
                     }
                 }
                 ui.separator();
-                if ui.button("More Borders…").clicked() {
+                if ui.button(crate::i18n::t(ui, "More Borders…")).clicked() {
                     app.open_dialog("formatCells", json!({"tab": "Border"}));
                 }
             });
@@ -965,7 +993,7 @@ fn home(app: &mut SheetApp, ui: &mut Ui) {
                     }
                 }
                 ui.separator();
-                if ui.button("More Functions…").clicked() {
+                if ui.button(crate::i18n::t(ui, "More Functions…")).clicked() {
                     app.open_dialog("insertFunction", json!({}));
                 }
             });
@@ -1120,7 +1148,7 @@ fn number_combo(app: &mut SheetApp, ui: &mut Ui, st: &Style) {
     let current = format!("{kind:?}");
     let lang = app.ui.language;
     let sample = app.session.active().and_then(|d| d.wb.active().map(|sh| sh.value(d.selection.active))).unwrap_or_default();
-    let resp = ui.add_sized([150.0, 24.0], egui::Button::new(egui::RichText::new(lang.tr(&current)).font(theme::ui_font(12.5))));
+    let resp = ui.add_sized([150.0, 24.0], egui::Button::new(egui::RichText::new(lang.tr_exact(&current)).font(theme::ui_font(12.5))));
     control_keytip(app, ui, &resp, "home.numberFormat");
     let forced = invoke(app, "home.numberFormat");
     let names = ["General", "Number", "Currency", "Accounting", "Short Date", "Long Date", "Time", "Percentage", "Fraction", "Scientific", "Text"];
@@ -1142,23 +1170,23 @@ fn number_combo(app: &mut SheetApp, ui: &mut Ui, st: &Style) {
 }
 
 fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
-    ui.menu_button("Highlight Cells Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Highlight Cells Rules"), |ui| {
         for (label, op) in [("Greater Than…", "greater"), ("Less Than…", "less"), ("Between…", "between"), ("Equal To…", "equal")] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 app.open_dialog("cfQuick", json!({"type": "cellIs", "operator": op, "title": label}));
             }
         }
-        if ui.button("Text that Contains…").clicked() {
+        if ui.button(crate::i18n::t(ui, "Text that Contains…")).clicked() {
             app.open_dialog("cfQuick", json!({"type": "containsText", "title": "Text that Contains"}));
         }
-        if ui.button("A Date Occurring…").clicked() {
+        if ui.button(crate::i18n::t(ui, "A Date Occurring…")).clicked() {
             app.open_dialog("cfQuick", json!({"type": "timePeriod", "title": "A Date Occurring"}));
         }
-        if ui.button("Duplicate Values…").clicked() {
+        if ui.button(crate::i18n::t(ui, "Duplicate Values…")).clicked() {
             act(app, "home.conditionalFormat", json!({"rule": {"type": "duplicate"}}));
         }
     });
-    ui.menu_button("Top/Bottom Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Top/Bottom Rules"), |ui| {
         menu_items(
             app,
             ui,
@@ -1172,16 +1200,16 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    ui.menu_button("Data Bars", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Data Bars"), |ui| {
         for (label, c) in
             [("Blue", "#638EC6"), ("Green", "#63BE7B"), ("Red", "#F8696B"), ("Orange", "#FFB628"), ("Light Blue", "#008AEF"), ("Purple", "#D6007B")]
         {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "dataBar", "color": c}}));
             }
         }
     });
-    ui.menu_button("Color Scales", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Color Scales"), |ui| {
         for (label, cols) in [
             ("Green - Yellow - Red", vec!["#63BE7B", "#FFEB84", "#F8696B"]),
             ("Red - Yellow - Green", vec!["#F8696B", "#FFEB84", "#63BE7B"]),
@@ -1190,12 +1218,12 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ("White - Green", vec!["#FCFCFF", "#63BE7B"]),
             ("White - Red", vec!["#FCFCFF", "#F8696B"]),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "colorScale", "colors": cols}}));
             }
         }
     });
-    ui.menu_button("Icon Sets", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Icon Sets"), |ui| {
         for (label, set) in [
             ("3 Arrows", "3Arrows"),
             ("3 Traffic Lights", "3TrafficLights1"),
@@ -1204,16 +1232,16 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ("5 Arrows", "5Arrows"),
             ("5 Quarters", "5Quarters"),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "home.conditionalFormat", json!({"rule": {"type": "iconSet", "set": set}}));
             }
         }
     });
     ui.separator();
-    if ui.button("New Rule…").clicked() {
+    if ui.button(crate::i18n::t(ui, "New Rule…")).clicked() {
         app.open_dialog("cfQuick", json!({"type": "expression", "title": "New Formatting Rule"}));
     }
-    ui.menu_button("Clear Rules", |ui| {
+    ui.menu_button(crate::i18n::t(ui, "Clear Rules"), |ui| {
         menu_items(
             app,
             ui,
@@ -1223,7 +1251,7 @@ fn cf_menu(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    if ui.button("Manage Rules…").clicked() {
+    if ui.button(crate::i18n::t(ui, "Manage Rules…")).clicked() {
         app.open_dialog("manageRules", json!({}));
     }
 }
@@ -1381,17 +1409,20 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
         act(app, "insert.table", json!({}));
     }
     sep(ui);
-    let pic = big_button(ui, Icon::Picture, "Pictures", "Insert a picture", true);
-    anchor_keytip(app, ui, &pic, &["insert.picture"]);
-    pic.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Pictures"));
-    egui::Popup::menu(&pic).show(|ui| {
-        for (label, placement) in [("Place in Cell", "cell"), ("Place over Cells", "overCells")] {
-            if ui.button(label).clicked() {
-                app.open_dialog("insertPicture", json!({"placement": placement}));
-                ui.close();
+    // Host lock: no local pictures.
+    if app.allowed("insert.picture") {
+        let pic = big_button(ui, Icon::Picture, "Pictures", "Insert a picture", true);
+        anchor_keytip(app, ui, &pic, &["insert.picture"]);
+        pic.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Pictures"));
+        egui::Popup::menu(&pic).show(|ui| {
+            for (label, placement) in [("Place in Cell", "cell"), ("Place over Cells", "overCells")] {
+                if ui.button(crate::i18n::t(ui, label)).clicked() {
+                    app.open_dialog("insertPicture", json!({"placement": placement}));
+                    ui.close();
+                }
             }
-        }
-    });
+        });
+    }
     let shapes = big_button(ui, Icon::Shapes, "Shapes", "Shapes", true);
     anchor_keytip(app, ui, &shapes, &["insert.shape"]);
     egui::Popup::menu(&shapes).show(|ui| {
@@ -1404,7 +1435,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
             ("Arrow", "arrow"),
             ("Text Box", "textBox"),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "insert.shape", json!({"kind": kind}));
             }
         }
@@ -1476,7 +1507,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
                 let forced_c = invoke(app, cid);
                 egui::Popup::menu(&r).open_memory(popup_command(forced_c, r.clicked())).show(|ui| {
                     for (label, k, s) in &subs {
-                        if ui.button(*label).clicked() {
+                        if ui.button(crate::i18n::t(ui, label)).clicked() {
                             act(app, "insert.chart", json!({"type": k, "subtype": s}));
                         }
                     }
@@ -1512,7 +1543,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
                 let forced_c = invoke(app, cid);
                 egui::Popup::menu(&r).open_memory(popup_command(forced_c, r.clicked())).show(|ui| {
                     for (label, k, s) in &subs {
-                        if ui.button(*label).clicked() {
+                        if ui.button(crate::i18n::t(ui, label)).clicked() {
                             act(app, "insert.chart", json!({"type": k, "subtype": s}));
                         }
                     }
@@ -1529,7 +1560,7 @@ fn insert(app: &mut SheetApp, ui: &mut Ui) {
     anchor_keytip(app, ui, &sp, &["dialog:sparkline"]);
     egui::Popup::menu(&sp).show(|ui| {
         for (label, kind) in [("Line", "line"), ("Column", "column"), ("Win/Loss", "winLoss")] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 app.open_dialog("sparkline", json!({"type": kind}));
             }
         }
@@ -1886,12 +1917,15 @@ fn formulas(app: &mut SheetApp, ui: &mut Ui) {
 }
 
 fn data(app: &mut SheetApp, ui: &mut Ui) {
-    let gd = big_button(ui, Icon::Folder, "Get Data\n(Text/CSV)", "Import a text or CSV file", false);
-    control_keytip(app, ui, &gd, "data.getData");
-    if gd.clicked() {
-        app.open_dialog("open", json!({}));
+    // Host lock: the data goes into this workbook (its own picker); the Open dialog is shut.
+    if app.allowed("data.getData") {
+        let gd = big_button(ui, Icon::Folder, "Get Data\n(Text/CSV)", "Import a text or CSV file", false);
+        control_keytip(app, ui, &gd, "data.getData");
+        if gd.clicked() {
+            app.open_dialog(if app.host_locked() { "importData" } else { "open" }, json!({}));
+        }
+        sep(ui);
     }
-    sep(ui);
     ui.vertical(|ui| {
         let __k = small_button(ui, Icon::SortAsc, "", "Sort A to Z", false);
         control_keytip(app, ui, &__k, "data.sortAscending");
@@ -2077,24 +2111,39 @@ fn review(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    sep(ui);
-    let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
-    let __k = big_button(ui, Icon::Lock, if protected { "Unprotect\nSheet" } else { "Protect\nSheet" }, "Protect Sheet", false);
-    control_keytip(app, ui, &__k, "dialog:protectSheet");
-    if __k.clicked() {
-        if protected {
-            app.open_dialog("unprotectSheet", json!({}));
-        } else {
-            app.open_dialog("protectSheet", json!({}));
+    // The divider belongs to the protection group: it goes with the group when all of it is locked.
+    if ["review.protectSheet", "review.protectWorkbook", "review.allowEditRanges"].iter().any(|id| app.allowed(id)) {
+        sep(ui);
+    }
+    // Host lock: Protect/Unprotect Sheet, Protect Workbook and Allow Edit Ranges are not offered
+    // (the commands are locked).
+    if app.allowed("review.protectSheet") {
+        let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
+        let __k = big_button(ui, Icon::Lock, if protected { "Unprotect\nSheet" } else { "Protect\nSheet" }, "Protect Sheet", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Protect Sheet"));
+        control_keytip(app, ui, &__k, "dialog:protectSheet");
+        if __k.clicked() {
+            if protected {
+                app.open_dialog("unprotectSheet", json!({}));
+            } else {
+                app.open_dialog("protectSheet", json!({}));
+            }
         }
     }
-    let __k = big_button(ui, Icon::Book, "Protect\nWorkbook", "Protect Workbook structure", false);
-    control_keytip(app, ui, &__k, "review.protectWorkbook");
-    if __k.clicked() {
-        crate::backstage::protect_workbook(app);
+    if app.allowed("review.protectWorkbook") {
+        let __k = big_button(ui, Icon::Book, "Protect\nWorkbook", "Protect Workbook structure", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Protect Workbook"));
+        control_keytip(app, ui, &__k, "review.protectWorkbook");
+        if __k.clicked() {
+            crate::backstage::protect_workbook(app);
+        }
     }
-    if big_button(ui, Icon::Validation, "Allow Edit\nRanges", "Allow Edit Ranges", false).clicked() {
-        app.open_dialog("allowEditRanges", json!({}));
+    if app.allowed("review.allowEditRanges") {
+        let __k = big_button(ui, Icon::Validation, "Allow Edit\nRanges", "Allow Edit Ranges", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Allow Edit Ranges"));
+        if __k.clicked() {
+            app.open_dialog("allowEditRanges", json!({}));
+        }
     }
 }
 
@@ -2224,6 +2273,10 @@ fn view(app: &mut SheetApp, ui: &mut Ui) {
     });
     // Interface language: settings live in the View tab, like Excel's Options. The label follows
     // the current language so it stays readable; the choices are always shown in their own script.
+    // The PPM build is always Korean: no choice to show.
+    if app.host_locked() {
+        return;
+    }
     ui.vertical(|ui| {
         ui.label(egui::RichText::new(lang.tr("Interface language")).font(theme::ui_font(11.5)).color(t.text_dim));
         egui::ComboBox::from_id_salt("ui_language").width(120.0).selected_text(egui::RichText::new(lang.name()).font(theme::ui_font(12.5))).show_ui(
@@ -2240,7 +2293,7 @@ fn view(app: &mut SheetApp, ui: &mut Ui) {
 }
 
 fn automate(app: &mut SheetApp, ui: &mut Ui) {
-    if big_button(ui, Icon::Script, "Macros", "Macros and scripts in this workbook (Alt+F8)", false).clicked() {
+    if app.allowed("view.macros") && big_button(ui, Icon::Script, "Macros", "Macros and scripts in this workbook (Alt+F8)", false).clicked() {
         app.open_dialog("macros", json!({}));
     }
     let __k = big_button(ui, Icon::Script, "Command\nPalette", "Search and run any command", false);
@@ -2248,10 +2301,12 @@ fn automate(app: &mut SheetApp, ui: &mut Ui) {
     if __k.clicked() {
         app.open_dialog("commandSearch", json!({}));
     }
-    let __k = big_button(ui, Icon::Script, "Agent\nControl", "How agents drive GridCraft (MCP / control channel)", false);
-    control_keytip(app, ui, &__k, "agents");
-    if __k.clicked() {
-        app.open_dialog("agents", json!({}));
+    if !app.host_locked() {
+        let __k = big_button(ui, Icon::Script, "Agent\nControl", "How agents drive GridCraft (MCP / control channel)", false);
+        control_keytip(app, ui, &__k, "agents");
+        if __k.clicked() {
+            app.open_dialog("agents", json!({}));
+        }
     }
     let __k = big_button(ui, Icon::Script, "Action\nJournal", "Every command run in this session (replayable)", false);
     control_keytip(app, ui, &__k, "journal");
@@ -2274,7 +2329,7 @@ fn table_design(app: &mut SheetApp, ui: &mut Ui) {
         return;
     };
     ui.vertical(|ui| {
-        ui.label(egui::RichText::new("Table Name:").small());
+        ui.label(egui::RichText::new(crate::i18n::t(ui, "Table Name:")).small());
         let field = egui::Id::new(("gridcraft.table_name", &tname));
         if let Some(name) = crate::widgets::committed_text(ui, field, &tname, Some(120.0))
             && name != tname
@@ -2381,7 +2436,7 @@ fn chart_design(app: &mut SheetApp, ui: &mut Ui) {
             ("Funnel", "funnel", ""),
             ("Treemap", "treemap", ""),
         ] {
-            if ui.button(label).clicked() {
+            if ui.button(crate::i18n::t(ui, label)).clicked() {
                 act(app, "chart.set", json!({"chart": id, "type": k, "subtype": s}));
             }
         }

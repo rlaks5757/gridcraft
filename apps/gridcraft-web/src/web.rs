@@ -28,6 +28,18 @@ pub fn start() {
         // `?host=parent`: a same-origin page framing GridCraft (such as a Nextcloud app) opens
         // workbooks in it and stores what it saves (`host`).
         let bridge = if query_param("host").as_deref() == Some("parent") { crate::host::Bridge::new() } else { None };
+        // `&jsontools=1` (only /alternate-spreadjs sets it): the frame answers `gridcraft:export` and a new workbook replaces the open ones.
+        #[cfg(feature = "ppm-host")]
+        let bridge =
+            bridge.map(|b| b.with_json_tools(crate::gate::json_tools(gridcraft_engine::hostlock::HOST_BUILD, query_param("jsontools").as_deref())));
+        // The PPM build runs only inside the PPM page: opened any other way it opens nothing.
+        let host_param = query_param("host");
+        if crate::gate::decide(gridcraft_engine::hostlock::HOST_BUILD, host_param.as_deref(), bridge.is_some()) == crate::gate::Start::OpenFromPpm {
+            if let Some(el) = document.get_element_by_id(LOADING_ID) {
+                el.set_inner_html(crate::gate::OPEN_FROM_PPM);
+            }
+            return;
+        }
         let app_bridge = bridge.clone();
         let result = eframe::WebRunner::new()
             .start(
@@ -49,15 +61,9 @@ pub fn start() {
                     }
                     let mut app = SheetApp::new(session, services);
                     app.ui.system_theme = true;
-                    // Follow the browser's language, except a CJK one: the web build has no system
-                    // CJK fonts (none are bundled), so that interface would render as tofu.
-                    let browser = gridcraft_ui_egui::i18n::Language::system();
-                    if !matches!(
-                        browser,
-                        gridcraft_ui_egui::i18n::Language::Zh | gridcraft_ui_egui::i18n::Language::Ja | gridcraft_ui_egui::i18n::Language::Ko
-                    ) {
-                        app.ui.language = browser;
-                    }
+                    // The PPM build starts in Korean; the upstream one follows the browser (see `start_language`).
+                    app.ui.language =
+                        crate::gate::start_language(gridcraft_engine::hostlock::HOST_BUILD, gridcraft_ui_egui::i18n::Language::system());
                     SheetApp::setup_context_for_language(&cc.egui_ctx, false, app.ui.language);
                     if let Some(bridge) = &app_bridge {
                         if let Some(author) = query_param("author") {
@@ -97,7 +103,14 @@ struct WebShell {
 
 impl eframe::App for WebShell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if let Some(bridge) = &self.bridge {
+            bridge.apply_policy(&self.app);
+            #[cfg(feature = "ppm-host")]
+            bridge.replace_documents(&mut self.app);
+        }
         let dropped = ctx.input_mut(|i| std::mem::take(&mut i.raw.dropped_files));
+        // Host lock: the host sends the files; dropped ones are ignored.
+        let dropped = if self.app.host_locked() { Vec::new() } else { dropped };
         for f in dropped {
             let inbox = self.inbox.clone();
             let ctx = ctx.clone();
@@ -130,6 +143,7 @@ impl eframe::App for WebShell {
 fn services(inbox: Inbox, ctx: egui::Context) -> Services {
     let open_inbox = inbox.clone();
     let picture_ctx = ctx.clone();
+    let data_ctx = ctx.clone();
     Services {
         copy_html: Some(Box::new(copy_html)),
         open_async: Some(Box::new(move || {
@@ -152,6 +166,18 @@ fn services(inbox: Inbox, ctx: egui::Context) -> Services {
             let ctx = picture_ctx.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 let Some(file) = rfd::AsyncFileDialog::new().add_filter("Pictures (PNG, JPEG)", &["png", "jpg", "jpeg"]).pick_file().await else {
+                    return;
+                };
+                let bytes = file.read().await;
+                inbox.lock().unwrap_or_else(std::sync::PoisonError::into_inner).push((file.file_name(), bytes));
+                ctx.request_repaint();
+            });
+        })),
+        pick_data_async: Some(Box::new(move |inbox| {
+            let ctx = data_ctx.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let Some(file) = rfd::AsyncFileDialog::new().add_filter("Data (CSV, TSV, JSON)", &["csv", "tsv", "txt", "json"]).pick_file().await
+                else {
                     return;
                 };
                 let bytes = file.read().await;

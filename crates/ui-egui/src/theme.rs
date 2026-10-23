@@ -5,6 +5,7 @@
 //! best available match for the workbook font (Calibri/Carlito/Aptos/Arial…) with egui's built-in
 //! fonts as the last resort.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use egui::{Color32, FontData, FontDefinitions, FontFamily, FontId, Stroke, Visuals};
@@ -164,10 +165,49 @@ pub fn ui_bold(size: f32) -> FontId {
 /// is used; otherwise the name is bucketed to one of the built-in roles (mono/serif/cell). egui
 /// panics on a family that was never bound, so the installed branch is gated on
 /// [`crate::fonts::is_bound`] and never names a family egui hasn't been given.
+///
+/// Called for every drawn cell, so the answer is memoized per `(name, bold, italic)` until the bound
+/// set changes (the lookup allocates nothing; a miss builds the role keys once).
 pub fn cell_family(name: &str, bold: bool, italic: bool) -> FontFamily {
+    /// Names remembered before the cache starts over (a workbook can hold any number of names).
+    const MAX_NAMES: usize = 512;
+    type Cache = (u64, HashMap<String, [Option<FontFamily>; 4]>);
+    thread_local! {
+        static CACHE: std::cell::RefCell<Cache> = std::cell::RefCell::new((0, HashMap::new()));
+    }
+    let slot = usize::from(bold) * 2 + usize::from(italic);
+    let generation = crate::fonts::bound_generation();
+    CACHE.with(|c| {
+        let mut c = c.borrow_mut();
+        if c.0 != generation {
+            *c = (generation, HashMap::new());
+        }
+        if let Some(f) = c.1.get(name).and_then(|slots| slots[slot].clone()) {
+            return f;
+        }
+        let f = resolve_cell_family(name, bold, italic);
+        if c.1.len() >= MAX_NAMES {
+            c.1.clear();
+        }
+        c.1.entry(name.to_string()).or_default()[slot] = Some(f.clone());
+        f
+    })
+}
+
+fn resolve_cell_family(name: &str, bold: bool, italic: bool) -> FontFamily {
     let role = crate::fonts::role_key(name, bold, italic);
     if crate::fonts::is_bound(&role) {
         return FontFamily::Name(role.into());
+    }
+    // A build with the Office-compatible set embedded (the PPM web build) draws every name with it;
+    // a family it doesn't embed (Inter) is drawn with Carlito.
+    let family = match crate::fonts::office_family(name) {
+        "Inter" => "Carlito",
+        family => family,
+    };
+    let office = crate::fonts::office_role_key(family, bold, italic);
+    if crate::fonts::is_bound(&office) {
+        return FontFamily::Name(office.into());
     }
     let lower = name.to_ascii_lowercase();
     if lower.contains("courier") || lower.contains("mono") || lower.contains("consolas") {
@@ -417,6 +457,7 @@ pub fn font_definitions_with(language: crate::i18n::Language, used: &[String]) -
     for family in crate::fonts::installed_among(used) {
         bound.extend(crate::fonts::bind_family(&mut fonts, &family));
     }
+    bound.extend(bind_office(&mut fonts, &base_prop, &base_mono, &fallback));
     // Interface text (formula bar, name box, dialogs) falls back to the cell font before the
     // script faces: whatever a cell can draw, the formula bar can draw too, even where no script
     // fallback face was found (#349: macOS UI font without Hebrew, cells in Arial with it).
@@ -468,6 +509,33 @@ fn load_fallback(fonts: &mut FontDefinitions, han: HanOrder) -> Vec<String> {
         }
     }
     keys
+}
+
+// The Office-compatible faces a web build embeds (see `build.rs`); empty elsewhere and without
+// `CRAFT_FONTS_DIR`.
+include!(concat!(env!("OUT_DIR"), "/office_fonts.rs"));
+
+/// Binds the embedded Office-compatible families as cell fonts (see [`crate::fonts::office_family`]),
+/// plus NanumGothic from the Korean fallback face, and returns their role keys. Nothing without
+/// the embedded set.
+fn bind_office(fonts: &mut FontDefinitions, base: &[String], base_mono: &[String], fallback: &[String]) -> Vec<String> {
+    let mut bound = Vec::new();
+    for family in OFFICE_FAMILIES.iter().copied() {
+        let faces: Vec<(&str, &'static [u8])> = OFFICE_FONTS.iter().filter(|f| f.0 == family).map(|f| (f.1, f.2)).collect();
+        // The monospaced family falls back to egui's monospaced defaults, the others to the proportional ones.
+        let base = if family == "Liberation Mono" { base_mono } else { base };
+        bound.extend(crate::fonts::bind_embedded(fonts, family, &faces, base, fallback));
+    }
+    // The Korean face is already in `fonts` (the fallback), so it is bound by key, not embedded twice.
+    if let Some(korean) = fallback.iter().find(|k| *k == "web-korean") {
+        for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {
+            let role = crate::fonts::office_role_key("NanumGothic", bold, italic);
+            let chain: Vec<String> = std::iter::once(korean.clone()).chain(base.iter().cloned()).collect();
+            fonts.families.insert(FontFamily::Name(role.clone().into()), chain);
+            bound.push(role);
+        }
+    }
+    bound
 }
 
 /// The Korean face a web build embeds (see `build.rs`); `None` without `CRAFT_FONTS_DIR`.
@@ -770,6 +838,170 @@ mod font_binding_tests {
         // The same family in a style that wasn't bound falls back to a built-in role that is.
         let FontFamily::Name(fallback) = cell_family("Ubuntu", false, true) else { panic!("should name a family") };
         assert!(crate::fonts::is_bound(&fallback), "the fallback is a bound role");
+        crate::fonts::set_bound(always_bound());
+    }
+
+    /// The exact list shared with the viewer and the render worker, matched case-insensitively;
+    /// every other name is Carlito.
+    #[test]
+    fn document_fonts_map_to_the_office_compatible_families() {
+        use crate::fonts::office_family;
+        for name in [
+            "Calibri",
+            "calibri light",
+            "Aptos",
+            "Aptos Display",
+            "Aptos Narrow",
+            "Aptos Light",
+            "Aptos SemiBold",
+            "Segoe UI",
+            "Segoe UI Light",
+            "Segoe UI Semibold",
+            "Segoe UI Semilight",
+            "Unknown Font",
+            "Arial Black",
+            "Lucida Sans",
+            "",
+        ] {
+            assert_eq!(office_family(name), "Carlito", "{name:?}");
+        }
+        for name in ["Cambria", "Constantia", "Palatino", "Palatino Linotype", "Book Antiqua", "Georgia", "Garamond", "GEORGIA"] {
+            assert_eq!(office_family(name), "Caladea", "{name}");
+        }
+        for name in ["Arial", "ARIAL", " Arial ", "Arial Narrow", "Helvetica", "Helvetica Neue"] {
+            assert_eq!(office_family(name), "Liberation Sans", "{name}");
+        }
+        for name in ["Times New Roman", "Times"] {
+            assert_eq!(office_family(name), "Liberation Serif", "{name}");
+        }
+        for name in ["Courier New", "Courier", "Consolas", "Lucida Console"] {
+            assert_eq!(office_family(name), "Liberation Mono", "{name}");
+        }
+        assert_eq!(office_family("Inter"), "Inter");
+        for name in [
+            "맑은 고딕",
+            "Malgun Gothic",
+            "굴림",
+            "Gulim",
+            "굴림체",
+            "GulimChe",
+            "새굴림",
+            "New Gulim",
+            "돋움",
+            "Dotum",
+            "돋움체",
+            "DotumChe",
+            "바탕",
+            "Batang",
+            "바탕체",
+            "BatangChe",
+            "궁서",
+            "Gungsuh",
+            "궁서체",
+            "GungsuhChe",
+            "함초롬바탕",
+            "HCR Batang",
+            "함초롬돋움",
+            "HCR Dotum",
+            "나눔고딕",
+            "NanumGothic",
+            "나눔명조",
+            "NanumMyeongjo",
+            "Noto Sans KR",
+            "Noto Sans CJK KR",
+            "Noto Serif KR",
+            "Apple SD Gothic Neo",
+        ] {
+            assert_eq!(office_family(name), "NanumGothic", "{name}");
+        }
+    }
+
+    /// Without the embedded set a bound NanumGothic (the Korean fallback face) is the only office
+    /// family: `bind_office` binds its four roles by the `web-korean` key, each chain ending in the
+    /// proportional base, and `cell_family` names them for the Korean document fonts.
+    #[test]
+    fn bind_office_binds_nanum_gothic_roles_from_the_korean_face() {
+        let _g = crate::fonts::TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let mut fonts = FontDefinitions::default();
+        let base: Vec<String> = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
+        let base_mono: Vec<String> = fonts.families.get(&FontFamily::Monospace).cloned().unwrap_or_default();
+        // No Korean fallback: nothing of NanumGothic is bound.
+        assert!(!bind_office(&mut fonts, &base, &base_mono, &[]).iter().any(|r| r.contains("NanumGothic")));
+        fonts
+            .font_data
+            .insert("web-korean".into(), Arc::new(FontData::from_static(include_bytes!("../../../ppm/fonts-ko/fonts/carlito/Carlito-Regular.ttf"))));
+        let roles = bind_office(&mut fonts, &base, &base_mono, &["web-korean".to_string()]);
+        let nanum: Vec<&String> = roles.iter().filter(|r| r.contains("NanumGothic")).collect();
+        assert_eq!(nanum.len(), 4, "{roles:?}");
+        for role in &nanum {
+            let chain = &fonts.families[&FontFamily::Name(role.as_str().into())];
+            assert_eq!(chain.first().map(String::as_str), Some("web-korean"), "{role}");
+            assert!(chain.iter().all(|k| fonts.font_data.contains_key(k)), "{role}");
+        }
+        crate::fonts::set_bound(always_bound().into_iter().chain(roles.clone()));
+        let want = crate::fonts::office_role_key("NanumGothic", true, false);
+        for name in ["맑은 고딕", "굴림체", "나눔고딕"] {
+            assert!(matches!(cell_family(name, true, false), FontFamily::Name(f) if *f == *want), "{name}");
+        }
+        // Inter is not embedded: it is drawn with Carlito, and with Carlito unbound too it keeps a built-in role.
+        assert!(matches!(cell_family("Inter", false, false), FontFamily::Name(f) if &*f == CELL));
+        crate::fonts::set_bound(always_bound());
+    }
+
+    /// The memoized answer follows the bound set: it is recomputed when `set_bound` replaces it.
+    #[test]
+    fn cell_family_answers_follow_the_bound_set() {
+        let _g = crate::fonts::TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let role = crate::fonts::role_key("Ubuntu", false, false);
+        crate::fonts::set_bound(always_bound());
+        let before = cell_family("Ubuntu", false, false);
+        assert!(matches!(&before, FontFamily::Name(f) if &**f == CELL));
+        assert_eq!(cell_family("Ubuntu", false, false), before, "a repeated call answers the same");
+        crate::fonts::set_bound(always_bound().into_iter().chain([role.clone()]));
+        assert!(matches!(cell_family("Ubuntu", false, false), FontFamily::Name(f) if *f == *role));
+        crate::fonts::set_bound(always_bound());
+        assert_eq!(cell_family("Ubuntu", false, false), before);
+        // Many distinct names do not grow the memo without bound or change any answer.
+        for i in 0..2000 {
+            assert!(matches!(cell_family(&format!("Font {i}"), i % 2 == 0, false), FontFamily::Name(_)));
+        }
+    }
+
+    /// The embedded set binds four roles per family, each with data behind it; `cell_family` names
+    /// them only once bound, so a build without the set keeps its roles.
+    #[test]
+    fn embedded_office_faces_are_bound_and_used_by_name() {
+        let _g = crate::fonts::TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        const CARLITO: &[u8] = include_bytes!("../../../ppm/fonts-ko/fonts/carlito/Carlito-Regular.ttf");
+        const CARLITO_BOLD: &[u8] = include_bytes!("../../../ppm/fonts-ko/fonts/carlito/Carlito-Bold.ttf");
+        let mut fonts = FontDefinitions::default();
+        let base: Vec<String> = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
+        let tail = vec!["tail".to_string()];
+        fonts.font_data.insert("tail".into(), Arc::new(FontData::from_static(CARLITO)));
+        let roles = crate::fonts::bind_embedded(&mut fonts, "Carlito", &[("Regular", CARLITO), ("Bold", CARLITO_BOLD)], &base, &tail);
+        assert_eq!(roles.len(), 4);
+        for role in &roles {
+            let chain = &fonts.families[&FontFamily::Name(role.as_str().into())];
+            assert!(chain.iter().all(|k| fonts.font_data.contains_key(k)), "{role} has unbound data");
+            assert_eq!(chain.last(), Some(&"tail".to_string()), "{role} ends with the Korean fallback");
+        }
+        // Bold has its own face; italic (not given) uses Regular.
+        assert_ne!(fonts.families[&FontFamily::Name(roles[1].as_str().into())][0], fonts.families[&FontFamily::Name(roles[0].as_str().into())][0]);
+        assert_eq!(fonts.families[&FontFamily::Name(roles[2].as_str().into())][0], fonts.families[&FontFamily::Name(roles[0].as_str().into())][0]);
+        assert!(
+            crate::fonts::bind_embedded(&mut fonts, "Caladea", &[("Bold", CARLITO_BOLD)], &base, &tail).is_empty(),
+            "no Regular face, nothing bound"
+        );
+        drop_unparseable_fonts(&mut fonts);
+        assert!(fonts.font_data.keys().any(|k| k.starts_with("office-src:Carlito")), "the faces parse");
+        // Unbound: the old roles. Bound: the embedded role, bold and italic as asked.
+        crate::fonts::set_bound(always_bound());
+        assert!(matches!(cell_family("Calibri", true, false), FontFamily::Name(f) if &*f == CELL_BOLD));
+        crate::fonts::set_bound(always_bound().into_iter().chain(roles.clone()));
+        assert!(matches!(cell_family("Calibri", true, false), FontFamily::Name(f) if *f == *roles[1]));
+        assert!(matches!(cell_family("Aptos Display", false, true), FontFamily::Name(f) if *f == *roles[2]));
+        // A family that isn't bound (Cambria → Caladea here) keeps the built-in role.
+        assert!(matches!(cell_family("Cambria", false, false), FontFamily::Name(f) if &*f == SERIF));
         crate::fonts::set_bound(always_bound());
     }
 

@@ -16,12 +16,21 @@ pub enum LinkKind {
     Refused(String),
 }
 
+/// Unicode format characters (category Cf) that reorder or hide text: soft hyphen, Arabic letter
+/// mark, zero-width and bidi marks/overrides/isolates, invisible operators, BOM, tag characters
+/// (the full category).
+fn is_format_char(c: char) -> bool {
+    matches!(c, '\u{00AD}' | '\u{0600}'..='\u{0605}' | '\u{061C}' | '\u{06DD}' | '\u{070F}' | '\u{0890}'..='\u{0891}' | '\u{08E2}' | '\u{180E}'
+            | '\u{200B}'..='\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2060}'..='\u{2064}' | '\u{2066}'..='\u{206F}' | '\u{FEFF}' | '\u{FFF9}'..='\u{FFFB}'
+            | '\u{110BD}' | '\u{110CD}' | '\u{13430}'..='\u{1343F}' | '\u{1BCA0}'..='\u{1BCA3}' | '\u{1D173}'..='\u{1D17A}' | '\u{E0001}' | '\u{E0020}'..='\u{E007F}')
+}
+
 const ALLOWED: [&str; 3] = ["http", "https", "mailto"];
 
 /// Classifies a link target. Never panics; the single place that decides what may be opened.
 pub fn classify(target: &str) -> LinkKind {
     let t = target.trim();
-    if t.chars().any(char::is_control) {
+    if t.chars().any(|c| c.is_control() || is_format_char(c)) {
         return LinkKind::Refused("The link contains control characters.".into());
     }
     if t.starts_with("\\\\") || t.starts_with("//") {
@@ -47,6 +56,24 @@ pub fn classify(target: &str) -> LinkKind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn format_characters_in_a_link_are_refused() {
+        for bad in [
+            "https://example.com/\u{202E}gpj.exe",
+            "https://exa\u{200B}mple.com",
+            "https://a.example/\u{FEFF}",
+            "mailto:a@b.example\u{2066}",
+            "https://a.example/\u{061C}",
+            "https://a.example/\u{00AD}",
+            "https://a.example/\u{E0041}",
+            "https://a.example/\u{0600}",
+            "https://a.example/\u{206F}",
+        ] {
+            assert!(matches!(classify(bad), LinkKind::Refused(_)), "{bad:?}");
+        }
+        assert!(matches!(classify("https://example.com/gpj.exe"), LinkKind::External(_)));
+    }
 
     #[test]
     fn only_http_https_and_mailto_leave_the_workbook() {

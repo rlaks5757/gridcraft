@@ -166,24 +166,29 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                 out.close = true;
             }
             ui.add_space(10.0);
-            for page in [Page::Home, Page::New, Page::Open] {
+            // Host lock: the host owns the files, so no Home/New/Open; Save As, Print and Export only
+            // with their commands on.
+            let locked = app.host_locked();
+            for page in [Page::Home, Page::New, Page::Open].into_iter().filter(|_| !locked) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
                     out.page = Some(page);
                 }
             }
-            nav_separator(ui, nav_text);
-            if nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
+            if !locked {
+                nav_separator(ui, nav_text);
+            }
+            if app.page_allowed(Page::Info) && nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
                 out.page = Some(Page::Info);
             }
             if nav_item(ui, Icon::Save, lang.tr("Save"), false, nav_text, nav_sel).clicked() {
                 save(app, &mut out);
             }
-            for page in [Page::SaveAs, Page::Print, Page::Export] {
+            for page in [Page::SaveAs, Page::Print, Page::Export].into_iter().filter(|p| app.page_allowed(*p)) {
                 if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
                     out.page = Some(page);
                 }
             }
-            if nav_item(ui, Icon::Close, lang.tr("Close"), false, nav_text, nav_sel).clicked() {
+            if app.allowed("file.close") && nav_item(ui, Icon::Close, lang.tr("Close"), false, nav_text, nav_sel).clicked() {
                 // A cell still being edited is part of the workbook; Close keeps the unsaved prompt.
                 if app.commit_edit(0, 0, false, false) {
                     app.run_or_alert("file.close", json!({}));
@@ -240,7 +245,8 @@ fn save(app: &mut SheetApp, out: &mut Outcome) {
     if !app.commit_edit(0, 0, false, false) {
         return;
     }
-    if app.session.active().is_some_and(|d| d.path.is_some()) {
+    // Under the host lock Save always goes to the host (through `file.save`'s save request).
+    if app.host_locked() || app.session.active().is_some_and(|d| d.path.is_some()) {
         app.run_or_alert("file.save", json!({}));
         out.close = true;
     } else {
@@ -656,12 +662,20 @@ fn save_as(app: &mut SheetApp, ui: &mut Ui, bs: &mut Backstage, out: &mut Outcom
     let lang = app.ui.language;
     dim(ui, lang.tr("Save the workbook under another name or in another folder."));
     ui.add_space(14.0);
+    // Host lock: a type whose export is off is not offered (the workbook itself always is).
+    let offered = |app: &SheetApp, ext: &str| ext == "xlsx" || app.allowed(crate::format_switch(ext));
+    if !offered(app, bs.save_format) {
+        bs.save_format = "xlsx";
+    }
     let fmt = bs.save_format;
     let current = SAVE_TYPES.iter().find(|(ext, _)| *ext == fmt).map_or("Excel Workbook (*.xlsx)", |(_, label)| *label);
     ui.horizontal(|ui| {
         ui.label(lang.tr("Save as type"));
         egui::ComboBox::from_id_salt("backstage_save_type").width(280.0).selected_text(lang.tr(current)).show_ui(ui, |ui| {
             for (ext, label) in SAVE_TYPES {
+                if !offered(app, ext) {
+                    continue;
+                }
                 if ui.selectable_label(fmt == ext, lang.tr(label)).clicked() {
                     bs.save_format = ext;
                 }
@@ -850,7 +864,8 @@ fn paint_page(p: &egui::Painter, rect: Rect, paper_w: f32, page: &Json, wb: &gri
 
 fn export(app: &mut SheetApp, ui: &mut Ui, out: &mut Outcome) {
     let lang = app.ui.language;
-    if action_row(ui, Icon::Paper, lang.tr("Create PDF"), lang.tr("Save the sheet as a PDF document that keeps its page layout.")).clicked()
+    if app.allowed("file.exportPdf")
+        && action_row(ui, Icon::Paper, lang.tr("Create PDF"), lang.tr("Save the sheet as a PDF document that keeps its page layout.")).clicked()
         && export_as(app, "pdf")
     {
         out.close = true;
@@ -861,6 +876,9 @@ fn export(app: &mut SheetApp, ui: &mut Ui, out: &mut Outcome) {
         ("csv", Icon::TextColumns, "CSV (Comma delimited)", "Save the active sheet as comma-separated text."),
         ("html", Icon::Link, "Web Page (.html)", "Save the workbook as a web page."),
     ] {
+        if !app.allowed(crate::format_switch(fmt)) {
+            continue;
+        }
         if action_row(ui, icon, lang.tr(title), lang.tr(detail)).clicked() && export_as(app, fmt) {
             out.close = true;
         }
@@ -946,15 +964,18 @@ fn options(app: &mut SheetApp, ui: &mut Ui) {
             }
         });
         ui.end_row();
-        ui.label(lang.tr("Interface language"));
-        egui::ComboBox::from_id_salt("backstage_language").width(160.0).selected_text(lang.name()).show_ui(ui, |ui| {
-            for l in i18n::Language::ALL {
-                if ui.selectable_label(l == lang, l.name()).clicked() {
-                    app.run_or_alert("app.language.set", json!({"language": l.code()}));
+        // The PPM build is always Korean: no choice to show.
+        if !app.host_locked() {
+            ui.label(lang.tr("Interface language"));
+            egui::ComboBox::from_id_salt("backstage_language").width(160.0).selected_text(lang.name()).show_ui(ui, |ui| {
+                for l in i18n::Language::ALL {
+                    if ui.selectable_label(l == lang, l.name()).clicked() {
+                        app.run_or_alert("app.language.set", json!({"language": l.code()}));
+                    }
                 }
-            }
-        });
-        ui.end_row();
+            });
+            ui.end_row();
+        }
     });
     ui.add_space(6.0);
     let mut formula_bar = app.session.prefs.formula_bar;
@@ -968,10 +989,12 @@ fn options(app: &mut SheetApp, ui: &mut Ui) {
         app.run_or_alert("options.autoComplete", json!({"on": autocomplete}));
     }
     ui.add_space(18.0);
-    section(ui, lang, "Options|Save");
-    let mut autosave = app.grid.autosave();
-    if ui.checkbox(&mut autosave, lang.tr("Save .xlsx workbooks automatically after every change")).changed() {
-        app.grid.toggle_autosave();
+    if !app.host_locked() {
+        section(ui, lang, "Options|Save");
+        let mut autosave = app.grid.autosave();
+        if ui.checkbox(&mut autosave, lang.tr("Save .xlsx workbooks automatically after every change")).changed() {
+            app.grid.toggle_autosave();
+        }
     }
     let Some(calc) = app.session.active().map(|d| d.wb.calc.clone()) else { return };
     ui.add_space(18.0);

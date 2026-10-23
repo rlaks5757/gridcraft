@@ -18,6 +18,7 @@ pub mod fonts;
 pub mod formula_bar;
 mod formula_locale;
 pub mod grid;
+pub mod host_lock;
 pub mod i18n;
 pub mod icons;
 pub mod keymap;
@@ -37,6 +38,7 @@ pub mod widgets;
 use std::collections::HashMap;
 
 use gridcraft_engine::core::{CellRef, RangeRef};
+use gridcraft_engine::hostlock::Policy;
 use gridcraft_engine::{Session, UiRequest};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as Json, json};
@@ -175,6 +177,9 @@ pub struct Services {
     /// Browser picture picker. Each dialog owns its inbox, so canceled picks cannot
     /// insert into a subsequent dialog or open the image as a workbook.
     pub pick_picture_async: Option<Box<dyn Fn(Inbox)>>,
+    /// Starts a browser file dialog for data (CSV, TSV, JSON) and pushes the chosen file to the
+    /// inbox. Get Data in the host-locked app uses it to fill a sheet of the open workbook.
+    pub pick_data_async: Option<Box<dyn Fn(Inbox)>>,
     pub open_url: Option<Box<dyn Fn(&str)>>,
     /// Publish HTML and its plain-text alternative together. `Ok` means the host owns the
     /// write (including any asynchronous fallback); an immediate error uses egui's text path.
@@ -196,6 +201,111 @@ pub struct Services {
     /// Web: hand PDF bytes to the browser's print flow directly (no download,
     /// no intermediate file) — opens the system print dialog on that PDF.
     pub print: Option<Box<dyn Fn(&[u8])>>,
+}
+
+impl Services {
+    /// What stays of the platform services under the PPM host lock: the clipboard services,
+    /// the pickers for pictures to put in the workbook, and `download` (which the host bridge
+    /// points at the parent's save), which hands over a workbook (.xlsx) always and another
+    /// format only when `policy` turns its export on. File pickers for workbooks, the desktop
+    /// print services are gone; printing the page and opening links work only with their command
+    /// on.
+    fn lock_for_host(&mut self, policy: Policy) {
+        self.printers = None;
+        self.print_native = None;
+        self.pick_open = None;
+        self.pick_save = None;
+        self.open_async = None;
+        if let Some(print) = self.print.take() {
+            let policy = policy.clone();
+            self.print = Some(Box::new(move |bytes: &[u8]| {
+                if host_lock::enabled(Some(&policy), "file.print") {
+                    print(bytes);
+                }
+            }));
+        }
+        if let Some(open_url) = self.open_url.take() {
+            let policy = policy.clone();
+            self.open_url = Some(Box::new(move |url: &str| {
+                if host_lock::enabled(Some(&policy), "link.open") {
+                    open_url(url);
+                }
+            }));
+        }
+        if let Some(download) = self.download.take() {
+            self.download = Some(Box::new(move |name: &str, bytes: &[u8]| {
+                if download_permitted(&policy, name) {
+                    download(name, bytes);
+                } else {
+                    log::warn!("the PPM host lock refused to hand {name} to the host");
+                }
+            }));
+        }
+    }
+}
+
+/// Whether the host-locked app may hand `name` to the parent: the workbook always, another
+/// format as its export (PDF also as printing) or Save As.
+fn download_permitted(policy: &Policy, name: &str) -> bool {
+    let on = |id| host_lock::enabled(Some(policy), id);
+    let ext = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default();
+    match ext.as_str() {
+        "xlsx" => true,
+        "pdf" => on("file.print") || on("file.exportPdf"),
+        "html" | "htm" => on("file.exportHtml"),
+        "csv" | "tsv" => on("file.exportCsv"),
+        _ => on("file.saveAs"),
+    }
+}
+
+/// Commands run by the app itself (not the engine) that are off until the parent's policy turns
+/// on `file.print`, whose switch they follow.
+pub const UI_COMMANDS_OFF: &[&str] = &["ui.printSettings", "ui.printSubmit"];
+
+/// The app's own plumbing (open a page or dialog, dismiss a message, switch the ribbon tab): always
+/// on, and not a command the administrator can switch, so `commands.json` leaves them out.
+pub const UI_COMMANDS_PLUMBING: &[&str] = &["ui.backstage", "ui.dialog", "ui.message.dismiss", "ui.notice", "ui.notice.dismiss", "ui.ribbonTab"];
+
+/// Commands run by the app itself that a host-locked app runs and the administrator may switch
+/// off. Every `run_ui_command` arm is in one of the three lists (a test reads the source to check).
+pub const UI_COMMANDS_ALLOWED: &[&str] = &[
+    "app.language.english",
+    "app.language.japanese",
+    "app.language.set",
+    "options.autoComplete",
+    "view.animations",
+    "view.collapseRibbon",
+    "view.darkMode",
+    "view.interfaceScale",
+    "view.theme",
+];
+
+/// Dialogs a host-locked app never opens: they pick local workbooks, list files, run scripts or
+/// protect the workbook or a sheet (`review.protectWorkbook`, `review.protectSheet` and the rest are
+/// locked). `saveAs` stays: Save reaches the host through it.
+pub(crate) const DIALOGS_LOCKED: &[&str] =
+    &["agents", "allowEditRanges", "macros", "open", "protectSheet", "protectWorkbook", "start", "unprotectSheet", "unprotectWorkbook"];
+
+/// The command whose switch decides whether the host-locked app opens the dialog `name` (`None`:
+/// always). `saveCopy` is every export and Save As in one dialog: its format picks the switch.
+fn dialog_switch(name: &str, params: &Json) -> Option<&'static str> {
+    match name {
+        "openLink" => Some("link.open"),
+        "importData" => Some("data.getData"),
+        "saveCopy" => Some(format_switch(params.get("format").and_then(Json::as_str).unwrap_or("xlsx"))),
+        _ => None,
+    }
+}
+
+/// The command that decides whether the host-locked app writes a copy as `format` (a file
+/// extension): each export for its own format, Save As for the rest.
+pub fn format_switch(format: &str) -> &'static str {
+    match format.to_ascii_lowercase().as_str() {
+        "csv" | "tsv" => "file.exportCsv",
+        "html" => "file.exportHtml",
+        "pdf" => "file.exportPdf",
+        _ => "file.saveAs",
+    }
 }
 
 /// Shared queue of files read asynchronously (browser file picker, drag and drop).
@@ -266,7 +376,10 @@ pub struct SheetApp {
 }
 
 impl SheetApp {
-    pub fn new(session: Session, services: Services) -> SheetApp {
+    pub fn new(session: Session, mut services: Services) -> SheetApp {
+        if let Some(policy) = session.host_policy() {
+            services.lock_for_host(policy);
+        }
         SheetApp {
             session,
             ui: UiState::default(),
@@ -284,6 +397,7 @@ impl SheetApp {
             synthetic: Default::default(),
             control_rx: None,
             grid: grid::GridState {
+                autosave: false,
                 last_border: "bottom".into(),
                 last_fill: "#FFFF00".into(),
                 last_font_color: "#C00000".into(),
@@ -306,6 +420,46 @@ impl SheetApp {
             clipboard_text_at_copy: None,
             cut_text: None,
             started: now_ms(),
+        }
+    }
+
+    /// The PPM host owns the files: see `gridcraft_engine::hostlock`.
+    pub fn host_locked(&self) -> bool {
+        self.session.host_locked()
+    }
+
+    /// Whether the command `id` may run from a menu, button or shortcut. Always true outside
+    /// the host lock.
+    pub fn allowed(&self, id: &str) -> bool {
+        host_lock::enabled(self.session.host_policy().as_ref(), id)
+    }
+
+    /// Whether a host-locked app leaves out the menu entry `id`: `dialog:<name>` for a dialog it never
+    /// opens ([`DIALOGS_LOCKED`]), else a command graded locked.
+    pub fn entry_hidden(&self, id: &str) -> bool {
+        self.host_locked()
+            && match id.strip_prefix("dialog:") {
+                Some(name) => DIALOGS_LOCKED.contains(&name),
+                None => host_lock::grade(id) == Some(gridcraft_engine::hostlock::Grade::Locked),
+            }
+    }
+
+    /// Is `id` a command of the host-locked app that is off now (so its control is shown dimmed)?
+    pub fn switched_off(&self, id: &str) -> bool {
+        self.host_locked() && host_lock::grade(id).is_some() && !self.allowed(id)
+    }
+
+    /// May the File tab show `page`? Options stays; Info (properties and Protect Workbook) and
+    /// Home, New and Open (the start screens) are not for a host-locked app; Save As, Print and
+    /// Export need their commands.
+    pub fn page_allowed(&self, page: backstage::Page) -> bool {
+        use backstage::Page;
+        match page {
+            Page::Options => true,
+            Page::Info | Page::Home | Page::New | Page::Open => !self.host_locked(),
+            Page::SaveAs => self.allowed("file.saveAs"),
+            Page::Print => self.allowed("file.print"),
+            Page::Export => ["file.exportCsv", "file.exportHtml", "file.exportPdf"].iter().any(|c| self.allowed(c)),
         }
     }
 
@@ -377,7 +531,13 @@ impl SheetApp {
         {
             self.commit_text_box_edit()?;
         }
-        if let Some(r) = self.run_ui_command(id, &params) {
+        // A switched-off app command is refused like a locked engine command: without a word.
+        if (UI_COMMANDS_OFF.contains(&id) || UI_COMMANDS_ALLOWED.contains(&id)) && !self.allowed(id) {
+            return Err(gridcraft_engine::EngineError::HostLocked(id.to_string()).to_string());
+        }
+        if self.allowed(id)
+            && let Some(r) = self.run_ui_command(id, &params)
+        {
             return r;
         }
         let r = self.session.run(id, params);
@@ -535,6 +695,10 @@ impl SheetApp {
 
     /// Shows a command error: a toast for an unavailable command, else a message box.
     fn alert(&mut self, e: String) {
+        // The host lock refuses quietly: the item is not in the menus either.
+        if e.contains(gridcraft_engine::hostlock::BLOCKED_TEXT) {
+            return;
+        }
         if e.contains("is not available right now") {
             self.toast = Some((e, now_ms()));
         } else {
@@ -572,6 +736,10 @@ impl SheetApp {
 
     /// UI-only commands (dialogs, view toggles that aren't saved in the file).
     fn run_ui_command(&mut self, id: &str, p: &Json) -> Option<Result<Json, String>> {
+        // The PPM build is always Korean: the language cannot be changed.
+        if self.host_locked() && matches!(id, "app.language.set" | "app.language.english" | "app.language.japanese") {
+            return Some(Err("the interface language is fixed to Korean in PPM".into()));
+        }
         let r = match id {
             "ui.printSettings" => printing::settings(&mut self.printing, p, self.services.printers.as_ref()),
             "ui.printSubmit" => self.submit_print(p.clone()),
@@ -713,6 +881,9 @@ impl SheetApp {
             self.message = Some(("Text Box".into(), clean_error(&e)));
             return;
         }
+        if self.host_locked() && (DIALOGS_LOCKED.contains(&name) || dialog_switch(name, &params).is_some_and(|c| !self.allowed(c))) {
+            return;
+        }
         match name {
             "open" => {
                 if let Some(start) = &self.services.open_async {
@@ -752,6 +923,13 @@ impl SheetApp {
     /// Opens the File tab's Backstage view on `page`, committing a cell still being edited first
     /// (File actions work on the whole workbook). A draft that can't be committed keeps the sheet.
     pub fn open_backstage(&mut self, page: backstage::Page) {
+        let page = if self.page_allowed(page) {
+            page
+        } else if self.page_allowed(backstage::Page::Info) {
+            backstage::Page::Info
+        } else {
+            backstage::Page::Options
+        };
         if !self.commit_edit(0, 0, false, false) {
             return;
         }
@@ -809,7 +987,12 @@ impl SheetApp {
             let text = if msgs.len() == 1 {
                 msgs[0].to_string()
             } else {
-                format!("{} items in this file were handled differently. First: {}", msgs.len(), msgs[0])
+                let lang = self.ui.language;
+                if lang == i18n::Language::Ko {
+                    format!("이 파일의 {}개 항목이 다르게 처리되었습니다. 첫 번째: {}", msgs.len(), lang.tr_exact(msgs[0]))
+                } else {
+                    format!("{} items in this file were handled differently. First: {}", msgs.len(), msgs[0])
+                }
             };
             self.notice = Some(Notice { text, kind: NoticeKind::Info, action: None });
         }
@@ -1090,6 +1273,27 @@ impl SheetApp {
         }
     }
 
+    /// Hyperlinks egui draws (About ▸ Contributors, anywhere else) open through the host's
+    /// `open_url`: the native shell has no browser of its own, and the host-locked app's switch for
+    /// links sits on it. Runs every frame, not only while a dialog is open.
+    fn forward_urls(&mut self, ctx: &egui::Context) {
+        let Some(open_url) = &self.services.open_url else { return };
+        let urls: Vec<String> = ctx.output_mut(|o| {
+            let mut urls = vec![];
+            o.commands.retain(|c| match c {
+                egui::OutputCommand::OpenUrl(u) => {
+                    urls.push(u.url.clone());
+                    false
+                }
+                _ => true,
+            });
+            urls
+        });
+        for u in urls {
+            open_url(&u);
+        }
+    }
+
     /// Lays out the whole window.
     pub fn ui(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
@@ -1136,6 +1340,8 @@ impl SheetApp {
         if !ctx.input(|i| i.focused) {
             // Nothing else to do.
         }
+        // Last, so a link anything drew this frame is caught.
+        self.forward_urls(&ctx);
         let now = now_ms();
         self.perf.frame_ms = now - t0;
         if self.perf.last > 0.0 {
@@ -1147,6 +1353,7 @@ impl SheetApp {
         self.perf.last = now;
         // AutoSave: save workbooks that have a file shortly after they change.
         if self.grid.autosave
+            && !self.host_locked()
             && self.editor.is_none()
             && self.text_box_editor.is_none()
             && now - self.grid.last_autosave > 2000.0
