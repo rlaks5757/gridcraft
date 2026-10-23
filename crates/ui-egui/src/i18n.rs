@@ -763,4 +763,10 @@ mod exact_tests {
         assert_eq!(Language::En.tr("Sheet Options|View"), "View");
         assert_eq!(Language::Ko.tr_exact("Close"), Language::Ko.tr("Close"));
     }
+
+    #[test]
+    fn the_missing_styles_open_warning_is_translated_for_korean_only() {
+        assert_eq!(Language::Ko.tr_exact("no styles part"), "서식 정보가 없어 기본 서식으로 엽니다");
+        assert_eq!(Language::En.tr_exact("no styles part"), "no styles part");
+    }
 }

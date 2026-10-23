@@ -16,12 +16,18 @@ pub enum LinkKind {
     Refused(String),
 }
 
+/// Unicode format characters (category Cf) that reorder or hide text: soft hyphen, Arabic letter
+/// mark, zero-width and bidi marks/overrides/isolates, invisible operators, BOM.
+fn is_format_char(c: char) -> bool {
+    matches!(c, '\u{00AD}' | '\u{061C}' | '\u{200B}'..='\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2060}'..='\u{2064}' | '\u{2066}'..='\u{2069}' | '\u{FEFF}')
+}
+
 const ALLOWED: [&str; 3] = ["http", "https", "mailto"];
 
 /// Classifies a link target. Never panics; the single place that decides what may be opened.
 pub fn classify(target: &str) -> LinkKind {
     let t = target.trim();
-    if t.chars().any(char::is_control) {
+    if t.chars().any(|c| c.is_control() || is_format_char(c)) {
         return LinkKind::Refused("The link contains control characters.".into());
     }
     if t.starts_with("\\\\") || t.starts_with("//") {
@@ -47,6 +53,21 @@ pub fn classify(target: &str) -> LinkKind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn format_characters_in_a_link_are_refused() {
+        for bad in [
+            "https://example.com/\u{202E}gpj.exe",
+            "https://exa\u{200B}mple.com",
+            "https://a.example/\u{FEFF}",
+            "mailto:a@b.example\u{2066}",
+            "https://a.example/\u{061C}",
+            "https://a.example/\u{00AD}",
+        ] {
+            assert!(matches!(classify(bad), LinkKind::Refused(_)), "{bad:?}");
+        }
+        assert!(matches!(classify("https://example.com/gpj.exe"), LinkKind::External(_)));
+    }
 
     #[test]
     fn only_http_https_and_mailto_leave_the_workbook() {

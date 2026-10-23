@@ -1423,6 +1423,8 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Tools" => "도구",
         "Window" => "창",
         "Workbook Views" => "통합 문서 보기",
+        // File-open warning from the xlsx reader (shown through `tr_exact` in the info bar).
+        "no styles part" => "서식 정보가 없어 기본 서식으로 엽니다",
         _ => return None,
     })
 }
