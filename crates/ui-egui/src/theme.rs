@@ -847,8 +847,21 @@ mod font_binding_tests {
     fn document_fonts_map_to_the_office_compatible_families() {
         use crate::fonts::office_family;
         for name in [
-            "Calibri", "calibri light", "Aptos", "Aptos Display", "Aptos Narrow", "Aptos Light", "Aptos SemiBold", "Segoe UI", "Segoe UI Light",
-            "Segoe UI Semibold", "Segoe UI Semilight", "Unknown Font", "Arial Black", "Lucida Sans", "",
+            "Calibri",
+            "calibri light",
+            "Aptos",
+            "Aptos Display",
+            "Aptos Narrow",
+            "Aptos Light",
+            "Aptos SemiBold",
+            "Segoe UI",
+            "Segoe UI Light",
+            "Segoe UI Semibold",
+            "Segoe UI Semilight",
+            "Unknown Font",
+            "Arial Black",
+            "Lucida Sans",
+            "",
         ] {
             assert_eq!(office_family(name), "Carlito", "{name:?}");
         }
@@ -866,9 +879,38 @@ mod font_binding_tests {
         }
         assert_eq!(office_family("Inter"), "Inter");
         for name in [
-            "맑은 고딕", "Malgun Gothic", "굴림", "Gulim", "굴림체", "GulimChe", "새굴림", "New Gulim", "돋움", "Dotum", "돋움체", "DotumChe", "바탕",
-            "Batang", "바탕체", "BatangChe", "궁서", "Gungsuh", "궁서체", "GungsuhChe", "함초롬바탕", "HCR Batang", "함초롬돋움", "HCR Dotum", "나눔고딕",
-            "NanumGothic", "나눔명조", "NanumMyeongjo", "Noto Sans KR", "Noto Sans CJK KR", "Noto Serif KR", "Apple SD Gothic Neo",
+            "맑은 고딕",
+            "Malgun Gothic",
+            "굴림",
+            "Gulim",
+            "굴림체",
+            "GulimChe",
+            "새굴림",
+            "New Gulim",
+            "돋움",
+            "Dotum",
+            "돋움체",
+            "DotumChe",
+            "바탕",
+            "Batang",
+            "바탕체",
+            "BatangChe",
+            "궁서",
+            "Gungsuh",
+            "궁서체",
+            "GungsuhChe",
+            "함초롬바탕",
+            "HCR Batang",
+            "함초롬돋움",
+            "HCR Dotum",
+            "나눔고딕",
+            "NanumGothic",
+            "나눔명조",
+            "NanumMyeongjo",
+            "Noto Sans KR",
+            "Noto Sans CJK KR",
+            "Noto Serif KR",
+            "Apple SD Gothic Neo",
         ] {
             assert_eq!(office_family(name), "NanumGothic", "{name}");
         }
@@ -885,7 +927,9 @@ mod font_binding_tests {
         let base_mono: Vec<String> = fonts.families.get(&FontFamily::Monospace).cloned().unwrap_or_default();
         // No Korean fallback: nothing of NanumGothic is bound.
         assert!(!bind_office(&mut fonts, &base, &base_mono, &[]).iter().any(|r| r.contains("NanumGothic")));
-        fonts.font_data.insert("web-korean".into(), Arc::new(FontData::from_static(include_bytes!("../../../ppm/fonts-ko/fonts/carlito/Carlito-Regular.ttf"))));
+        fonts
+            .font_data
+            .insert("web-korean".into(), Arc::new(FontData::from_static(include_bytes!("../../../ppm/fonts-ko/fonts/carlito/Carlito-Regular.ttf"))));
         let roles = bind_office(&mut fonts, &base, &base_mono, &["web-korean".to_string()]);
         let nanum: Vec<&String> = roles.iter().filter(|r| r.contains("NanumGothic")).collect();
         assert_eq!(nanum.len(), 4, "{roles:?}");
@@ -944,7 +988,10 @@ mod font_binding_tests {
         // Bold has its own face; italic (not given) uses Regular.
         assert_ne!(fonts.families[&FontFamily::Name(roles[1].as_str().into())][0], fonts.families[&FontFamily::Name(roles[0].as_str().into())][0]);
         assert_eq!(fonts.families[&FontFamily::Name(roles[2].as_str().into())][0], fonts.families[&FontFamily::Name(roles[0].as_str().into())][0]);
-        assert!(crate::fonts::bind_embedded(&mut fonts, "Caladea", &[("Bold", CARLITO_BOLD)], &base, &tail).is_empty(), "no Regular face, nothing bound");
+        assert!(
+            crate::fonts::bind_embedded(&mut fonts, "Caladea", &[("Bold", CARLITO_BOLD)], &base, &tail).is_empty(),
+            "no Regular face, nothing bound"
+        );
         drop_unparseable_fonts(&mut fonts);
         assert!(fonts.font_data.keys().any(|k| k.starts_with("office-src:Carlito")), "the faces parse");
         // Unbound: the old roles. Bound: the embedded role, bold and italic as asked.

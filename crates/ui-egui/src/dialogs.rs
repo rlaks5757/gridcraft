@@ -215,7 +215,11 @@ impl Dialog {
                     "Allow Edit Ranges",
                     "review.allowEditRanges",
                     vec![
-                        Note(app.ui.language.tr("Ranges that stay editable when the sheet is protected:\n{summary}").replacen("{summary}", &summary, 1)),
+                        Note(app.ui.language.tr("Ranges that stay editable when the sheet is protected:\n{summary}").replacen(
+                            "{summary}",
+                            &summary,
+                            1,
+                        )),
                         Choice {
                             key: "action",
                             label: "Action",
@@ -251,7 +255,8 @@ impl Dialog {
                 // The file rides along in the values (`path` on the desktop, `name` and `base64`
                 // on the web) and goes back to `file.open` with the password.
                 let source = p("path").as_str().or(p("name").as_str()).map(str::to_string).unwrap_or_default();
-                let file = std::path::Path::new(&source).file_name().and_then(|n| n.to_str()).unwrap_or(app.ui.language.tr("This workbook")).to_string();
+                let file =
+                    std::path::Path::new(&source).file_name().and_then(|n| n.to_str()).unwrap_or(app.ui.language.tr("This workbook")).to_string();
                 // An empty password from the start, so OK on the untouched field says "incorrect"
                 // rather than asking for the password again.
                 let mut values = params.clone();
@@ -260,7 +265,10 @@ impl Dialog {
                     "openPassword",
                     "Password",
                     "file.open",
-                    vec![Note(app.ui.language.tr("'{file}' is protected.").replacen("{file}", &file, 1)), Password { key: "password", label: "Password:" }],
+                    vec![
+                        Note(app.ui.language.tr("'{file}' is protected.").replacen("{file}", &file, 1)),
+                        Password { key: "password", label: "Password:" },
+                    ],
                     values,
                 )
             }
@@ -1873,7 +1881,10 @@ fn find(app: &mut SheetApp, ui: &mut egui::Ui, d: &mut Dialog) {
                 p["with"] = json!(with);
                 p["all"] = json!(true);
                 match app.run("edit.replace", p) {
-                    Ok(r) => app.toast = Some((lang.tr("All done. We made {} replacements.").replacen("{}", &r["replaced"].to_string(), 1), crate::now_ms())),
+                    Ok(r) => {
+                        app.toast =
+                            Some((lang.tr("All done. We made {} replacements.").replacen("{}", &r["replaced"].to_string(), 1), crate::now_ms()))
+                    }
                     Err(e) => app.message = Some(("Find and Replace".into(), crate::clean_error(&e))),
                 }
             }
@@ -2287,7 +2298,12 @@ fn command_search(app: &mut SheetApp, ui: &mut egui::Ui, d: &mut Dialog, confirm
         .commands()
         .into_iter()
         .filter(|c| c.enabled)
-        .filter(|c| q.is_empty() || c.label.to_ascii_lowercase().contains(&q) || lang.tr(c.label).to_lowercase().contains(&q) || c.id.to_ascii_lowercase().contains(&q))
+        .filter(|c| {
+            q.is_empty()
+                || c.label.to_ascii_lowercase().contains(&q)
+                || lang.tr(c.label).to_lowercase().contains(&q)
+                || c.id.to_ascii_lowercase().contains(&q)
+        })
         .map(|c| (c.id.to_string(), c.label.to_string(), c.menu.iter().map(|p| lang.tr(p)).collect::<Vec<_>>().join(" › ")))
         .take(40)
         .collect();
@@ -2593,8 +2609,10 @@ fn solver(ui: &mut egui::Ui, d: &mut Dialog, confirm: &mut bool, open: &mut bool
     );
     ui.add_space(8.0);
     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-        let solve =
-            ui.add(egui::Button::new(egui::RichText::new(format!("  {}  ", lang.tr("Solve"))).color(Color32::WHITE)).fill(crate::theme::Tokens::get(ui.ctx()).accent));
+        let solve = ui.add(
+            egui::Button::new(egui::RichText::new(format!("  {}  ", lang.tr("Solve"))).color(Color32::WHITE))
+                .fill(crate::theme::Tokens::get(ui.ctx()).accent),
+        );
         if solve.clicked() && !text(d, "objective").trim().is_empty() {
             *confirm = true;
         }

@@ -293,7 +293,11 @@ fn download_and_print_and_links_follow_the_policy() {
 fn overrides_turn_commands_and_pages_on_and_off() {
     let (mut h, ..) = {
         let hits = Arc::new(AtomicUsize::new(0));
-        (harness_with(true, &[("file.print", true), ("file.exportPdf", true), ("home.bold", false), ("review.protectWorkbook", true)], counting(&hits, &Downloads::default(), Inbox::default())),)
+        (harness_with(
+            true,
+            &[("file.print", true), ("file.exportPdf", true), ("home.bold", false), ("review.protectWorkbook", true)],
+            counting(&hits, &Downloads::default(), Inbox::default()),
+        ),)
     };
     assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Print));
     assert!(h.state().page_allowed(gridcraft_ui_egui::backstage::Page::Export));
@@ -316,7 +320,9 @@ fn overrides_turn_commands_and_pages_on_and_off() {
 #[test]
 fn protection_is_locked_for_every_policy() {
     let ids = ["review.protectSheet", "review.unprotectSheet", "review.protectWorkbook", "review.allowEditRanges", "home.lockCell"];
-    for overrides in [&[][..], &[("review.protectSheet", true), ("review.allowEditRanges", true), ("home.lockCell", true), ("review.unprotectSheet", true)][..]] {
+    for overrides in
+        [&[][..], &[("review.protectSheet", true), ("review.allowEditRanges", true), ("home.lockCell", true), ("review.unprotectSheet", true)][..]]
+    {
         let hits = Arc::new(AtomicUsize::new(0));
         let mut h = harness_with(true, overrides, counting(&hits, &Downloads::default(), Inbox::default()));
         for id in ids {
@@ -434,7 +440,11 @@ fn the_save_as_and_export_pages_offer_only_the_formats_that_are_on() {
 #[test]
 fn share_menu_exports_reach_the_host() {
     let downloads = Downloads::default();
-    let mut h = harness_with(true, &[("file.exportCsv", true), ("file.exportHtml", true), ("view.collapseRibbon", false)], counting(&Arc::default(), &downloads, Inbox::default()));
+    let mut h = harness_with(
+        true,
+        &[("file.exportCsv", true), ("file.exportHtml", true), ("view.collapseRibbon", false)],
+        counting(&Arc::default(), &downloads, Inbox::default()),
+    );
     // The Share menu's path: no save picker in the locked web app, so the file goes to the host.
     h.state_mut().services.pick_save = None;
     assert!(gridcraft_ui_egui::backstage::export_as(h.state_mut(), "csv"));
@@ -464,10 +474,16 @@ fn save_as_with_the_command_off_sends_what_save_sends() {
     // Save has no file to write to in the locked web app, so it asks for the same dialog Ctrl+Shift+S
     // opens: the workbook as xlsx under its own name. Both must hand the host the same thing.
     let downloads = Downloads::default();
-    let mut h = harness(true, Services { download: Some(Box::new({
-        let downloads = downloads.clone();
-        move |name, bytes| downloads.lock().unwrap().push(format!("{name}:{}", bytes.len()))
-    })), ..Default::default() });
+    let mut h = harness(
+        true,
+        Services {
+            download: Some(Box::new({
+                let downloads = downloads.clone();
+                move |name, bytes| downloads.lock().unwrap().push(format!("{name}:{}", bytes.len()))
+            })),
+            ..Default::default()
+        },
+    );
     h.state_mut().run_or_alert("file.save", json!({}));
     h.run_steps(2);
     h.state_mut().open_dialog("saveAs", json!({}));

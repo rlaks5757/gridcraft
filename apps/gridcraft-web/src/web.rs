@@ -58,7 +58,8 @@ pub fn start() {
                     let mut app = SheetApp::new(session, services);
                     app.ui.system_theme = true;
                     // The PPM build starts in Korean; the upstream one follows the browser (see `start_language`).
-                    app.ui.language = crate::gate::start_language(gridcraft_engine::hostlock::HOST_BUILD, gridcraft_ui_egui::i18n::Language::system());
+                    app.ui.language =
+                        crate::gate::start_language(gridcraft_engine::hostlock::HOST_BUILD, gridcraft_ui_egui::i18n::Language::system());
                     SheetApp::setup_context_for_language(&cc.egui_ctx, false, app.ui.language);
                     if let Some(bridge) = &app_bridge {
                         if let Some(author) = query_param("author") {
@@ -169,7 +170,8 @@ fn services(inbox: Inbox, ctx: egui::Context) -> Services {
         pick_data_async: Some(Box::new(move |inbox| {
             let ctx = data_ctx.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let Some(file) = rfd::AsyncFileDialog::new().add_filter("Data (CSV, TSV, JSON)", &["csv", "tsv", "txt", "json"]).pick_file().await else {
+                let Some(file) = rfd::AsyncFileDialog::new().add_filter("Data (CSV, TSV, JSON)", &["csv", "tsv", "txt", "json"]).pick_file().await
+                else {
                     return;
                 };
                 let bytes = file.read().await;

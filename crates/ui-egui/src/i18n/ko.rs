@@ -656,11 +656,15 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "A print job is already being submitted." => "인쇄 작업을 이미 보내는 중입니다.",
         "Printing is unavailable here; export a PDF instead." => "여기서는 인쇄할 수 없습니다. 대신 PDF로 내보내세요.",
         "VBA" => "VBA",
-        "This workbook contains VBA macros. GridCraft keeps them intact when you save, but does not run them." => "이 통합 문서에는 VBA 매크로가 있습니다. 저장할 때 그대로 유지되지만 실행되지는 않습니다.",
+        "This workbook contains VBA macros. GridCraft keeps them intact when you save, but does not run them." => {
+            "이 통합 문서에는 VBA 매크로가 있습니다. 저장할 때 그대로 유지되지만 실행되지는 않습니다."
+        }
         "What this means" => "의미",
         "Selection" => "선택 영역",
         "Format Chart Area" => "차트 영역 서식",
-        "No comments on this sheet yet. Select a cell and choose New Comment." => "이 시트에는 아직 댓글이 없습니다. 셀을 선택하고 새 댓글을 선택하세요.",
+        "No comments on this sheet yet. Select a cell and choose New Comment." => {
+            "이 시트에는 아직 댓글이 없습니다. 셀을 선택하고 새 댓글을 선택하세요."
+        }
         "Resolved" => "해결됨",
         "Reopen" => "다시 열기",
         "Resolve" => "해결",
@@ -963,7 +967,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "New title (Modify):" => "새 제목(수정):",
         "Remove the password (Modify)" => "암호 제거(수정)",
         "Protect Structure and Windows" => "구조 및 창 보호",
-        "Protect workbook for: Structure (sheets can't be added, moved, renamed, hidden or deleted)." => "통합 문서 보호 대상: 구조(시트를 추가, 이동, 이름 바꾸기, 숨기기 또는 삭제할 수 없음).",
+        "Protect workbook for: Structure (sheets can't be added, moved, renamed, hidden or deleted)." => {
+            "통합 문서 보호 대상: 구조(시트를 추가, 이동, 이름 바꾸기, 숨기기 또는 삭제할 수 없음)."
+        }
         "Unprotect Workbook" => "통합 문서 보호 해제",
         "Password:" => "암호:",
         "This workbook" => "이 통합 문서",
@@ -1006,7 +1012,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Stop value:" => "종료 값:",
         "Start a conversation:" => "대화 시작:",
         "Note:" => "메모:",
-        "This workbook asks to open the address below. Links can lead to harmful sites or start other programs: open it only if you trust the workbook.\n\n{url}" => "이 통합 문서가 아래 주소를 열려고 합니다. 링크는 위험한 사이트로 연결하거나 다른 프로그램을 실행할 수 있으니, 통합 문서를 신뢰할 때만 여세요.\n\n{url}",
+        "This workbook asks to open the address below. Links can lead to harmful sites or start other programs: open it only if you trust the workbook.\n\n{url}" => {
+            "이 통합 문서가 아래 주소를 열려고 합니다. 링크는 위험한 사이트로 연결하거나 다른 프로그램을 실행할 수 있으니, 통합 문서를 신뢰할 때만 여세요.\n\n{url}"
+        }
         "Insert Hyperlink" => "하이퍼링크 삽입",
         "Display:" => "표시할 텍스트:",
         "Link to (web address, e-mail or Sheet!A1):" => "연결 대상(웹 주소, 전자 메일 또는 Sheet!A1):",
@@ -1015,7 +1023,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Data Range:" => "데이터 범위:",
         "Location Range:" => "위치 범위:",
         "Markers" => "표식",
-        "Header (&L left, &C center, &R right; &P page, &N pages, &D date, &A sheet):" => "머리글(&L 왼쪽, &C 가운데, &R 오른쪽; &P 페이지, &N 전체 페이지, &D 날짜, &A 시트):",
+        "Header (&L left, &C center, &R right; &P page, &N pages, &D date, &A sheet):" => {
+            "머리글(&L 왼쪽, &C 가운데, &R 오른쪽; &P 페이지, &N 전체 페이지, &D 날짜, &A 시트):"
+        }
         "Footer:" => "바닥글:",
         "Page Setup" => "페이지 설정",
         "Left margin (in):" => "왼쪽 여백(인치):",
@@ -1039,7 +1049,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Timeline range (blank: first column of the selection):" => "시간 표시 범위(비워 두면 선택 영역의 첫째 열):",
         "Values range (blank: second column of the selection):" => "값 범위(비워 두면 선택 영역의 둘째 열):",
         "Forecast end (date or number; blank: a third of the history):" => "예측 끝(날짜 또는 숫자, 비워 두면 기록의 3분의 1):",
-        "Forecast start (a date or number in the history; blank: after the last point):" => "예측 시작(기록 안의 날짜 또는 숫자, 비워 두면 마지막 점 다음):",
+        "Forecast start (a date or number in the history; blank: after the last point):" => {
+            "예측 시작(기록 안의 날짜 또는 숫자, 비워 두면 마지막 점 다음):"
+        }
         "Confidence interval" => "신뢰 구간",
         "Confidence level (%):" => "신뢰 수준(%):",
         "Seasonality (auto, 0 for none, or a season length):" => "계절성(자동, 0은 없음, 또는 주기 길이):",
@@ -1154,7 +1166,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Warning" => "경고",
         "Information" => "정보",
         "Error message:" => "오류 메시지:",
-        "GridCraft is fully drivable by agents. Every menu item, button and gesture is a command:" => "GridCraft는 에이전트가 완전히 제어할 수 있습니다. 모든 메뉴 항목, 단추, 동작이 명령입니다:",
+        "GridCraft is fully drivable by agents. Every menu item, button and gesture is a command:" => {
+            "GridCraft는 에이전트가 완전히 제어할 수 있습니다. 모든 메뉴 항목, 단추, 동작이 명령입니다:"
+        }
         "Choose a PNG or JPEG no larger than 16 MB." => "16MB 이하의 PNG 또는 JPEG를 선택하세요.",
         "No picture selected" => "선택한 그림 없음",
         "Picture file path (PNG or JPEG):" => "그림 파일 경로(PNG 또는 JPEG):",
@@ -1169,13 +1183,19 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Don't Save" => "저장 안 함",
         "Cancel" => "취소",
         "Start a new workbook" => "새 통합 문서 시작",
-        "Return to the original worksheet to insert this picture, or cancel and choose another cell." => "이 그림을 삽입하려면 원래 워크시트로 돌아가거나, 취소하고 다른 셀을 선택하세요.",
+        "Return to the original worksheet to insert this picture, or cancel and choose another cell." => {
+            "이 그림을 삽입하려면 원래 워크시트로 돌아가거나, 취소하고 다른 셀을 선택하세요."
+        }
         "OK" => "확인",
         "Show password" => "암호 표시",
         "Version {}" => "버전 {}",
-        "A clean-room, open-source, Rust-native spreadsheet. Part of ArtCraft." => "클린룸 방식의 오픈 소스 Rust 기반 스프레드시트입니다. ArtCraft의 일부입니다.",
+        "A clean-room, open-source, Rust-native spreadsheet. Part of ArtCraft." => {
+            "클린룸 방식의 오픈 소스 Rust 기반 스프레드시트입니다. ArtCraft의 일부입니다."
+        }
         "Join the ArtCraft Discord" => "ArtCraft Discord 참여",
-        "Automation in this workbook. GridCraft runs its own scripts; a file's VBA project is preserved but not executed." => "이 통합 문서의 자동화입니다. GridCraft는 자체 스크립트를 실행하며, 파일의 VBA 프로젝트는 보존되지만 실행되지 않습니다.",
+        "Automation in this workbook. GridCraft runs its own scripts; a file's VBA project is preserved but not executed." => {
+            "이 통합 문서의 자동화입니다. GridCraft는 자체 스크립트를 실행하며, 파일의 VBA 프로젝트는 보존되지만 실행되지 않습니다."
+        }
         "This workbook has no scripts or macros." => "이 통합 문서에는 스크립트나 매크로가 없습니다.",
         "(unnamed)" => "(이름 없음)",
         "Alignment" => "맞춤",
@@ -1205,7 +1225,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "No Color" => "색 없음",
         "Locked" => "잠금",
         "Hidden" => "숨김",
-        "Locking cells or hiding formulas has no effect until you protect the worksheet (Review › Protect Sheet)." => "워크시트를 보호하기 전에는 셀 잠금이나 수식 숨기기가 적용되지 않습니다(검토 › 시트 보호).",
+        "Locking cells or hiding formulas has no effect until you protect the worksheet (Review › Protect Sheet)." => {
+            "워크시트를 보호하기 전에는 셀 잠금이나 수식 숨기기가 적용되지 않습니다(검토 › 시트 보호)."
+        }
         "Search:" => "검색:",
         "Find what:" => "찾을 내용:",
         "Replace with:" => "바꿀 내용:",
@@ -1300,9 +1322,15 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Simplex LP" => "단순 LP",
         "Evolutionary" => "진화",
         "GRG Nonlinear" => "GRG 비선형",
-        "Simplex LP: for linear models; integer and binary constraints by branch and bound." => "단순 LP: 선형 모델용이며 정수 및 이진 제약 조건은 분기 한정법으로 처리합니다.",
-        "Evolutionary: a genetic search for models that aren't smooth; every variable cell needs bounds." => "진화: 매끄럽지 않은 모델을 위한 유전자 탐색이며, 모든 변수 셀에 한계가 필요합니다.",
-        "GRG Nonlinear: a local optimum of a smooth model, from the current values." => "GRG 비선형: 현재 값에서 시작해 매끄러운 모델의 국소 최적해를 찾습니다.",
+        "Simplex LP: for linear models; integer and binary constraints by branch and bound." => {
+            "단순 LP: 선형 모델용이며 정수 및 이진 제약 조건은 분기 한정법으로 처리합니다."
+        }
+        "Evolutionary: a genetic search for models that aren't smooth; every variable cell needs bounds." => {
+            "진화: 매끄럽지 않은 모델을 위한 유전자 탐색이며, 모든 변수 셀에 한계가 필요합니다."
+        }
+        "GRG Nonlinear: a local optimum of a smooth model, from the current values." => {
+            "GRG 비선형: 현재 값에서 시작해 매끄러운 모델의 국소 최적해를 찾습니다."
+        }
         "Keep Solver Solution" => "해 찾기 해 유지",
         "Restore Original Values" => "원래 값 복원",
         "Reports:" => "보고서:",
@@ -1326,7 +1354,9 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Household Budget" => "가계부",
         "Quarterly Sales Dashboard" => "분기별 매출 대시보드",
         "Gradebook" => "성적표",
-        "{} engine commands are available. See docs/mcp.md and docs/control-protocol.md." => "엔진 명령 {}개를 사용할 수 있습니다. docs/mcp.md와 docs/control-protocol.md를 참고하세요.",
+        "{} engine commands are available. See docs/mcp.md and docs/control-protocol.md." => {
+            "엔진 명령 {}개를 사용할 수 있습니다. docs/mcp.md와 docs/control-protocol.md를 참고하세요."
+        }
         "this workbook" => "이 통합 문서",
         "Anova: Single Factor" => "분산 분석: 일원 배치법",
         "Correlation" => "상관 분석",

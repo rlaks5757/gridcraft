@@ -403,22 +403,9 @@ pub const BLOCKED: &[&str] = &[
     "view.macros",
 ];
 /// Commands that are off until the policy turns them on.
-pub const OFF: &[&str] = &[
-    "file.exportCsv",
-    "file.exportHtml",
-    "file.exportPdf",
-    "file.print",
-    "file.saveAs",
-    "link.open",
-];
+pub const OFF: &[&str] = &["file.exportCsv", "file.exportHtml", "file.exportPdf", "file.print", "file.saveAs", "link.open"];
 /// Commands a locked session runs only with certain params (see [`permits`]).
-pub const CONDITIONAL: &[&str] = &[
-    "data.fromTextCsv",
-    "data.getData",
-    "file.open",
-    "file.save",
-    "file.saveBytes",
-];
+pub const CONDITIONAL: &[&str] = &["data.fromTextCsv", "data.getData", "file.open", "file.save", "file.saveBytes"];
 
 /// The grade of the engine command `id`; `None` for an id nobody classified. `file.open` is
 /// `Locked`, but see [`permits`].
@@ -465,7 +452,8 @@ pub fn permits(policy: Option<&Policy>, id: &str, params: &Json) -> bool {
         // Save hands the xlsx to the parent; a path would pick a file (and its extension a format).
         "file.save" => policy.enabled(id, Grade::On) && (!has("path") || policy.enabled("file.saveAs", Grade::Off)),
         "file.saveBytes" => {
-            policy.enabled(id, Grade::On) && params.get("format").and_then(Json::as_str).and_then(export_command).is_none_or(|c| policy.enabled(c, Grade::Off))
+            policy.enabled(id, Grade::On)
+                && params.get("format").and_then(Json::as_str).and_then(export_command).is_none_or(|c| policy.enabled(c, Grade::Off))
         }
         _ => grade(id).is_some_and(|g| policy.enabled(id, g)),
     }

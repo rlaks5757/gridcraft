@@ -2197,7 +2197,10 @@ fn interact(app: &mut SheetApp, ui: &mut egui::Ui, resp: &egui::Response, geo: &
             Drag::ResizeCol { col, start, orig } => {
                 let w = (orig + (p.x - start) / geo.z).max(0.0);
                 let chars = format!("{:.2}", gridcraft_engine::cmd::format::points_to_chars(w as f64));
-                app.toast = Some((app.ui.language.tr("Width: {:.2} ({} pixels)").replacen("{:.2}", &chars, 1).replacen("{}", &w.round().to_string(), 1), crate::now_ms()));
+                app.toast = Some((
+                    app.ui.language.tr("Width: {:.2} ({} pixels)").replacen("{:.2}", &chars, 1).replacen("{}", &w.round().to_string(), 1),
+                    crate::now_ms(),
+                ));
                 // Inside a selection of whole columns, every selected column takes the new width
                 // (Ctrl-selected areas included); otherwise only the dragged one.
                 let cols = if sel.ranges.iter().any(|r| r.is_full_cols() && col >= r.start.col && col <= r.end.col) {
@@ -2211,7 +2214,10 @@ fn interact(app: &mut SheetApp, ui: &mut egui::Ui, resp: &egui::Response, geo: &
             Drag::ResizeRow { row, start, orig } => {
                 let h = (orig + (p.y - start) / geo.z).max(0.0);
                 let points = format!("{:.2}", h * 0.75);
-                app.toast = Some((app.ui.language.tr("Height: {:.2} ({} pixels)").replacen("{:.2}", &points, 1).replacen("{}", &h.round().to_string(), 1), crate::now_ms()));
+                app.toast = Some((
+                    app.ui.language.tr("Height: {:.2} ({} pixels)").replacen("{:.2}", &points, 1).replacen("{}", &h.round().to_string(), 1),
+                    crate::now_ms(),
+                ));
                 let rows = if sel.ranges.iter().any(|r| r.is_full_rows() && row >= r.start.row && row <= r.end.row) {
                     sel.ranges
                         .iter()

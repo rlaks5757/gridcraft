@@ -325,9 +325,37 @@ pub fn office_family(name: &str) -> &'static str {
         "times" | "times new roman" => "Liberation Serif",
         "courier" | "courier new" | "consolas" | "lucida console" => "Liberation Mono",
         "inter" => "Inter",
-        "맑은 고딕" | "malgun gothic" | "굴림" | "gulim" | "굴림체" | "gulimche" | "새굴림" | "new gulim" | "돋움" | "dotum" | "돋움체" | "dotumche"
-        | "바탕" | "batang" | "바탕체" | "batangche" | "궁서" | "gungsuh" | "궁서체" | "gungsuhche" | "함초롬바탕" | "hcr batang" | "함초롬돋움"
-        | "hcr dotum" | "나눔고딕" | "nanumgothic" | "나눔명조" | "nanummyeongjo" | "noto sans kr" | "noto sans cjk kr" | "noto serif kr"
+        "맑은 고딕"
+        | "malgun gothic"
+        | "굴림"
+        | "gulim"
+        | "굴림체"
+        | "gulimche"
+        | "새굴림"
+        | "new gulim"
+        | "돋움"
+        | "dotum"
+        | "돋움체"
+        | "dotumche"
+        | "바탕"
+        | "batang"
+        | "바탕체"
+        | "batangche"
+        | "궁서"
+        | "gungsuh"
+        | "궁서체"
+        | "gungsuhche"
+        | "함초롬바탕"
+        | "hcr batang"
+        | "함초롬돋움"
+        | "hcr dotum"
+        | "나눔고딕"
+        | "nanumgothic"
+        | "나눔명조"
+        | "nanummyeongjo"
+        | "noto sans kr"
+        | "noto sans cjk kr"
+        | "noto serif kr"
         | "apple sd gothic neo" => "NanumGothic",
         _ => "Carlito",
     }
@@ -338,7 +366,13 @@ pub fn office_family(name: &str) -> &'static str {
 /// family lacks uses its Regular face. Each chain ends with `base` (egui's defaults) and `tail`
 /// (the Korean face), so a glyph the face lacks (Hangul, emoji) still draws. A family with no
 /// Regular face binds nothing.
-pub fn bind_embedded(fonts: &mut egui::FontDefinitions, family: &str, faces: &[(&str, &'static [u8])], base: &[String], tail: &[String]) -> Vec<String> {
+pub fn bind_embedded(
+    fonts: &mut egui::FontDefinitions,
+    family: &str,
+    faces: &[(&str, &'static [u8])],
+    base: &[String],
+    tail: &[String],
+) -> Vec<String> {
     let Some(regular) = faces.iter().find(|(style, _)| *style == "Regular") else { return Vec::new() };
     let mut bound = Vec::new();
     for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {

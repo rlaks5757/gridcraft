@@ -95,7 +95,9 @@ mod tests {
         let mut got = policy_overrides(r#"{"overrides": {"file.print": true, "home.bold": false, "a": "yes", "b": 1, "c": null, "d": {}}}"#);
         got.sort();
         assert_eq!(got, vec![("file.print".to_string(), true), ("home.bold".to_string(), false)]);
-        for bad in ["", "null", "[]", "5", "{}", r#"{"overrides": null}"#, r#"{"overrides": []}"#, r#"{"overrides": "x"}"#, r#"{"other": {"a": true}}"#, "{"] {
+        for bad in
+            ["", "null", "[]", "5", "{}", r#"{"overrides": null}"#, r#"{"overrides": []}"#, r#"{"overrides": "x"}"#, r#"{"other": {"a": true}}"#, "{"]
+        {
             assert!(policy_overrides(bad).is_empty(), "{bad}");
         }
     }

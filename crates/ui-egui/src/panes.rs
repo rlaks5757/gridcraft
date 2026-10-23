@@ -92,7 +92,8 @@ fn comments(app: &mut SheetApp, ui: &mut Ui) {
                             app.run_or_alert("review.resolveComment", json!({"cell": cell, "resolved": !c.resolved}));
                         }
                         let send = ui.small_button(crate::i18n::t(ui, "Send")).clicked();
-                        let r = ui.add(egui::TextEdit::singleline(&mut draft).hint_text(crate::i18n::t(ui, "Reply…")).desired_width(ui.available_width()));
+                        let r = ui
+                            .add(egui::TextEdit::singleline(&mut draft).hint_text(crate::i18n::t(ui, "Reply…")).desired_width(ui.available_width()));
                         if (r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) || send) && !draft.is_empty() {
                             app.run_or_alert("review.replyComment", json!({"cell": cell, "text": draft}));
                             draft.clear();
@@ -232,7 +233,11 @@ fn format_chart(app: &mut SheetApp, ui: &mut Ui) {
     ui.collapsing("Series", |ui| {
         let data = app.session.active().map(|d| gridcraft_chart::resolve(&d.wb, d.wb.active_sheet, &chart));
         for (i, s) in chart.series.iter().enumerate() {
-            let name = data.as_ref().and_then(|d| d.series.get(i)).map(|x| x.name.clone()).unwrap_or_else(|| app.ui.language.tr("Series {}").replacen("{}", &(i + 1).to_string(), 1));
+            let name = data
+                .as_ref()
+                .and_then(|d| d.series.get(i))
+                .map(|x| x.name.clone())
+                .unwrap_or_else(|| app.ui.language.tr("Series {}").replacen("{}", &(i + 1).to_string(), 1));
             let col =
                 data.as_ref().and_then(|d| d.series.get(i)).map(|x| Color32::from_rgb(x.color[0], x.color[1], x.color[2])).unwrap_or(Color32::GRAY);
             ui.horizontal(|ui| {

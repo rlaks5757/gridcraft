@@ -110,8 +110,13 @@ mod tests {
     #[test]
     fn every_command_has_a_korean_label() {
         let list: serde_json::Value = serde_json::from_str(&commands_json()).unwrap();
-        let missing: Vec<&str> =
-            list["commands"].as_array().unwrap().iter().filter(|c| c["labelKo"].as_str().is_none_or(str::is_empty)).filter_map(|c| c["id"].as_str()).collect();
+        let missing: Vec<&str> = list["commands"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|c| c["labelKo"].as_str().is_none_or(str::is_empty))
+            .filter_map(|c| c["id"].as_str())
+            .collect();
         assert!(missing.is_empty(), "commands without a Korean label: {missing:?}");
     }
 
