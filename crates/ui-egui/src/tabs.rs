@@ -199,9 +199,12 @@ pub fn sheet_tabs(app: &mut SheetApp, ui: &mut Ui) {
                                         app.run_or_alert("sheet.unhide", json!({}));
                                     }
                                     ui.separator();
-                                    let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
-                                    if ui.button(crate::i18n::t(ui, if protected { "Unprotect Sheet…" } else { "Protect Sheet…" })).clicked() {
-                                        app.open_dialog(if protected { "unprotectSheet" } else { "protectSheet" }, json!({}));
+                                    // Host lock: sheet protection is not offered.
+                                    if app.allowed("review.protectSheet") {
+                                        let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
+                                        if ui.button(crate::i18n::t(ui, if protected { "Unprotect Sheet…" } else { "Protect Sheet…" })).clicked() {
+                                            app.open_dialog(if protected { "unprotectSheet" } else { "protectSheet" }, json!({}));
+                                        }
                                     }
                                     if ui.button(crate::i18n::t(ui, "Select All Sheets")).clicked() {
                                         ui.close();

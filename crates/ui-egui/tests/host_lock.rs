@@ -183,6 +183,11 @@ fn the_ribbon_and_title_bar_lose_the_blocked_entries() {
     h.state_mut().ui.ribbon_tab = "Data".into();
     h.run_steps(3);
     assert!(h.query_by_label("Get Data\n(Text/CSV)").is_none(), "Get Data reads a local file");
+    h.state_mut().ui.ribbon_tab = "Review".into();
+    h.run_steps(3);
+    for label in ["Protect Sheet", "Protect Workbook", "Allow Edit Ranges"] {
+        assert!(h.query_by_label(label).is_none(), "{label:?} is not offered when locked");
+    }
 
     let hits = Arc::new(AtomicUsize::new(0));
     let mut open = harness(false, counting(&hits, &Downloads::default(), Inbox::default()));
@@ -190,6 +195,11 @@ fn the_ribbon_and_title_bar_lose_the_blocked_entries() {
     open.state_mut().ui.ribbon_tab = "Insert".into();
     open.run_steps(3);
     assert!(open.query_by_label("Pictures").is_some());
+    open.state_mut().ui.ribbon_tab = "Review".into();
+    open.run_steps(3);
+    for label in ["Protect Sheet", "Protect Workbook", "Allow Edit Ranges"] {
+        assert!(open.query_by_label(label).is_some(), "{label:?} stays in the upstream app");
+    }
 }
 
 #[test]
@@ -296,6 +306,31 @@ fn overrides_turn_commands_and_pages_on_and_off() {
     assert!(h.state_mut().run("home.bold", json!({})).is_err());
     assert!(h.state_mut().run("file.close", json!({})).is_err(), "locked stays locked");
     assert!(h.state().allowed("ui.printSettings") && h.state().allowed("ui.printSubmit"), "the print dialog follows file.print");
+}
+
+/// Sheet and workbook protection is blocked whatever the policy says: the commands, the dialogs and
+/// the cell lock, so a password or a lock set here cannot lock the parent's copy for everyone else.
+#[test]
+fn protection_is_locked_for_every_policy() {
+    let ids = ["review.protectSheet", "review.unprotectSheet", "review.protectWorkbook", "review.allowEditRanges", "home.lockCell"];
+    for overrides in [&[][..], &[("review.protectSheet", true), ("review.allowEditRanges", true), ("home.lockCell", true), ("review.unprotectSheet", true)][..]] {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let mut h = harness_with(true, overrides, counting(&hits, &Downloads::default(), Inbox::default()));
+        for id in ids {
+            assert!(!h.state().allowed(id), "{id}");
+            assert!(h.state_mut().run(id, json!({"password": "x", "on": true})).is_err(), "{id}");
+        }
+        for name in ["protectSheet", "unprotectSheet", "allowEditRanges", "protectWorkbook", "unprotectWorkbook"] {
+            h.state_mut().open_dialog(name, json!({}));
+            assert!(h.state().dialog.is_none(), "{name} dialog opened");
+            assert!(h.state().entry_hidden(&format!("dialog:{name}")), "{name} menu entry is drawn");
+        }
+        assert!(h.state().entry_hidden("home.lockCell"));
+        let sheet = h.state().session.active().and_then(|d| d.wb.active().map(|s| s.is_protected()));
+        assert_eq!(sheet, Some(false), "nothing got protected");
+    }
+    let free = harness(false, counting(&Arc::new(AtomicUsize::new(0)), &Downloads::default(), Inbox::default()));
+    assert!(!free.state().entry_hidden("dialog:protectSheet") && !free.state().entry_hidden("home.lockCell"));
 }
 
 /// Every command the app handles itself (`run_ui_command`) is classified for the host lock.

@@ -311,25 +311,25 @@ pub fn office_role_key(family: &str, bold: bool, italic: bool) -> String {
 }
 
 /// The embedded family a document font name is drawn with: the Office-compatible face the server's
-/// PDF renderer uses for it. Calibri, Aptos and every unknown name give Carlito; Cambria gives
-/// Caladea; Arial and Helvetica give Liberation Sans; Times New Roman and the other serifs give
-/// Liberation Serif; Courier New, Consolas and other monospaced names give Liberation Mono; the
-/// Korean names give NanumGothic.
+/// PDF renderer uses for it. The name is matched exactly and case-insensitively against one list
+/// (the same one the viewer and the render worker use): Calibri, Aptos and Segoe UI give Carlito;
+/// Cambria gives Caladea; Arial, Helvetica and Helvetica Neue give Liberation Sans; Times and Times
+/// New Roman give Liberation Serif; Courier, Courier New and Consolas give Liberation Mono; the
+/// Korean document names give NanumGothic; Inter gives Inter (not embedded here: the caller falls
+/// back to Carlito). Every other name gives Carlito, and Hangul in any of them falls back to
+/// NanumGothic.
 pub fn office_family(name: &str) -> &'static str {
-    let lower = name.trim().to_lowercase();
-    let starts = |names: &[&str]| names.iter().any(|n| lower.starts_with(n));
-    if starts(&["맑은 고딕", "malgun gothic", "굴림", "gulim", "돋움", "dotum", "바탕", "batang", "궁서", "gungsuh", "nanumgothic", "nanum gothic"]) {
-        "NanumGothic"
-    } else if lower.starts_with("cambria") {
-        "Caladea"
-    } else if lower.contains("courier") || lower.contains("mono") || lower.contains("consolas") {
-        "Liberation Mono"
-    } else if starts(&["arial", "helvetica"]) {
-        "Liberation Sans"
-    } else if lower.contains("times") || lower.contains("georgia") || lower.contains("garamond") || (lower.contains("serif") && !lower.contains("sans")) {
-        "Liberation Serif"
-    } else {
-        "Carlito"
+    match name.trim().to_lowercase().as_str() {
+        "cambria" => "Caladea",
+        "arial" | "helvetica" | "helvetica neue" => "Liberation Sans",
+        "times" | "times new roman" => "Liberation Serif",
+        "courier" | "courier new" | "consolas" => "Liberation Mono",
+        "inter" => "Inter",
+        "맑은 고딕" | "malgun gothic" | "굴림" | "gulim" | "굴림체" | "gulimche" | "새굴림" | "new gulim" | "돋움" | "dotum" | "돋움체" | "dotumche"
+        | "바탕" | "batang" | "바탕체" | "batangche" | "궁서" | "gungsuh" | "궁서체" | "gungsuhche" | "함초롬바탕" | "hcr batang" | "함초롬돋움"
+        | "hcr dotum" | "나눔고딕" | "nanumgothic" | "나눔명조" | "nanummyeongjo" | "noto sans kr" | "noto sans cjk kr" | "noto serif kr"
+        | "apple sd gothic neo" => "NanumGothic",
+        _ => "Carlito",
     }
 }
 
@@ -367,9 +367,18 @@ fn bound() -> &'static std::sync::RwLock<HashSet<String>> {
     BOUND.get_or_init(|| std::sync::RwLock::new(HashSet::new()))
 }
 
+/// Bumped by every [`set_bound`], so a cache of answers that depend on the bound set can tell it is stale.
+static BOUND_GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// The number of times the bound set has been replaced.
+pub fn bound_generation() -> u64 {
+    BOUND_GENERATION.load(std::sync::atomic::Ordering::Acquire)
+}
+
 /// Record the role families a freshly built [`egui::FontDefinitions`] bound.
 pub fn set_bound(keys: impl IntoIterator<Item = String>) {
     *bound().write().unwrap_or_else(|e| e.into_inner()) = keys.into_iter().collect();
+    BOUND_GENERATION.fetch_add(1, std::sync::atomic::Ordering::Release);
 }
 
 /// Is this exact role family bound to font data?

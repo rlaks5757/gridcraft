@@ -44,7 +44,10 @@ fn embed_office_fonts() {
             Ok(text) => {
                 for line in text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')) {
                     let f: Vec<&str> = line.split(" | ").map(str::trim).collect();
-                    let [family, style, file, ..] = f.as_slice() else { continue };
+                    let [family, style, file, ..] = f.as_slice() else {
+                        println!("cargo::error={}: malformed line (want `family | style | file | …`): {line}", manifest.display());
+                        continue;
+                    };
                     if !OFFICE_FAMILIES.contains(family) {
                         continue;
                     }
@@ -53,7 +56,7 @@ fn embed_office_fonts() {
                             println!("cargo::rerun-if-changed={}", path.display());
                             let _ = writeln!(src, "    ({family:?}, {style:?}, include_bytes!({:?})),", path.display().to_string());
                         }
-                        Err(e) => println!("cargo::warning={file}: {e}"),
+                        Err(e) => println!("cargo::error={file}: {e}"),
                     }
                 }
             }
@@ -61,6 +64,8 @@ fn embed_office_fonts() {
         }
     }
     src.push_str("];\n");
+    // The families the set holds, so the app binds exactly these (one list, here).
+    let _ = writeln!(src, "pub const OFFICE_FAMILIES: &[&str] = &{OFFICE_FAMILIES:?};");
     let out = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("office_fonts.rs");
     if let Err(e) = std::fs::write(&out, src) {
         println!("cargo::warning=writing {}: {e}", out.display());

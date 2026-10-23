@@ -281,9 +281,10 @@ pub const UI_COMMANDS_ALLOWED: &[&str] = &[
 ];
 
 /// Dialogs a host-locked app never opens: they pick local workbooks, list files, run scripts or
-/// protect the workbook structure (`review.protectWorkbook` is locked). `saveAs` stays: Save
-/// reaches the host through it.
-const DIALOGS_LOCKED: &[&str] = &["agents", "macros", "open", "protectWorkbook", "start", "unprotectWorkbook"];
+/// protect the workbook or a sheet (`review.protectWorkbook`, `review.protectSheet` and the rest are
+/// locked). `saveAs` stays: Save reaches the host through it.
+pub(crate) const DIALOGS_LOCKED: &[&str] =
+    &["agents", "allowEditRanges", "macros", "open", "protectSheet", "protectWorkbook", "start", "unprotectSheet", "unprotectWorkbook"];
 
 /// The command whose switch decides whether the host-locked app opens the dialog `name` (`None`:
 /// always). `saveCopy` is every export and Save As in one dialog: its format picks the switch.
@@ -431,6 +432,16 @@ impl SheetApp {
     /// the host lock.
     pub fn allowed(&self, id: &str) -> bool {
         host_lock::enabled(self.session.host_policy().as_ref(), id)
+    }
+
+    /// Whether a host-locked app leaves out the menu entry `id`: `dialog:<name>` for a dialog it never
+    /// opens ([`DIALOGS_LOCKED`]), else a command graded locked.
+    pub fn entry_hidden(&self, id: &str) -> bool {
+        self.host_locked()
+            && match id.strip_prefix("dialog:") {
+                Some(name) => DIALOGS_LOCKED.contains(&name),
+                None => host_lock::grade(id) == Some(gridcraft_engine::hostlock::Grade::Locked),
+            }
     }
 
     /// Is `id` a command of the host-locked app that is off now (so its control is shown dimmed)?

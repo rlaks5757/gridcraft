@@ -508,6 +508,10 @@ fn menu_items(app: &mut SheetApp, ui: &mut Ui, items: &[(&str, &str, serde_json:
             ui.separator();
             continue;
         }
+        // Host lock: an entry for a dialog or command the lock never allows is not drawn.
+        if app.entry_hidden(id) {
+            continue;
+        }
         let lang = app.ui.language;
         let response = ui.add(egui::Button::new(lang.tr(label)).frame(false).min_size(vec2(220.0, 22.0)));
         if let Some(sequence) = keytip_table::item_letter(app.keytips.prefix().unwrap_or_default(), id) {
@@ -2108,26 +2112,35 @@ fn review(app: &mut SheetApp, ui: &mut Ui) {
         );
     });
     sep(ui);
-    let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
-    let __k = big_button(ui, Icon::Lock, if protected { "Unprotect\nSheet" } else { "Protect\nSheet" }, "Protect Sheet", false);
-    control_keytip(app, ui, &__k, "dialog:protectSheet");
-    if __k.clicked() {
-        if protected {
-            app.open_dialog("unprotectSheet", json!({}));
-        } else {
-            app.open_dialog("protectSheet", json!({}));
+    // Host lock: Protect/Unprotect Sheet, Protect Workbook and Allow Edit Ranges are not offered
+    // (the commands are locked).
+    if app.allowed("review.protectSheet") {
+        let protected = app.session.active().and_then(|d| d.wb.active().map(|s| s.is_protected())).unwrap_or(false);
+        let __k = big_button(ui, Icon::Lock, if protected { "Unprotect\nSheet" } else { "Protect\nSheet" }, "Protect Sheet", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Protect Sheet"));
+        control_keytip(app, ui, &__k, "dialog:protectSheet");
+        if __k.clicked() {
+            if protected {
+                app.open_dialog("unprotectSheet", json!({}));
+            } else {
+                app.open_dialog("protectSheet", json!({}));
+            }
         }
     }
-    // Host lock: Protect/Unprotect Workbook is not offered (the command is locked).
     if app.allowed("review.protectWorkbook") {
         let __k = big_button(ui, Icon::Book, "Protect\nWorkbook", "Protect Workbook structure", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Protect Workbook"));
         control_keytip(app, ui, &__k, "review.protectWorkbook");
         if __k.clicked() {
             crate::backstage::protect_workbook(app);
         }
     }
-    if big_button(ui, Icon::Validation, "Allow Edit\nRanges", "Allow Edit Ranges", false).clicked() {
-        app.open_dialog("allowEditRanges", json!({}));
+    if app.allowed("review.allowEditRanges") {
+        let __k = big_button(ui, Icon::Validation, "Allow Edit\nRanges", "Allow Edit Ranges", false);
+        __k.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), "Allow Edit Ranges"));
+        if __k.clicked() {
+            app.open_dialog("allowEditRanges", json!({}));
+        }
     }
 }
 

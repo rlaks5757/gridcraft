@@ -1248,7 +1248,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "file.properties",
       "label": "Properties",
@@ -2173,7 +2173,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "home.lockCell",
       "label": "Lock Cell",
@@ -3081,7 +3081,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "review.allowEditRanges",
       "label": "Allow Edit Ranges…",
@@ -3186,7 +3186,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "review.protectSheet",
       "label": "Protect Sheet…",
@@ -3288,7 +3288,7 @@
     },
     {
       "grades": {
-        "builder": "on"
+        "builder": "locked"
       },
       "id": "review.unprotectSheet",
       "label": "Unprotect Sheet",

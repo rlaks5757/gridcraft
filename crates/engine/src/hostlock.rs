@@ -155,7 +155,6 @@ pub const ALLOWED: &[&str] = &[
     "edit.undo",
     "file.options",
     "file.printPreview", // only measures pages (Page Layout and Page Break views); nothing is printed or saved
-    "file.properties",
     "formulas.autoSum",
     "formulas.calculateNow",
     "formulas.calculateSheet",
@@ -229,7 +228,6 @@ pub const ALLOWED: &[&str] = &[
     "home.insertSheet",
     "home.italic",
     "home.justify",
-    "home.lockCell",
     "home.manageRules",
     "home.mergeAcross",
     "home.mergeCells",
@@ -306,7 +304,6 @@ pub const ALLOWED: &[&str] = &[
     "range.fill",
     "range.setValues",
     "review.addToDictionary",
-    "review.allowEditRanges",
     "review.changeSpelling",
     "review.checkAccessibility",
     "review.convertToComments",
@@ -315,7 +312,6 @@ pub const ALLOWED: &[&str] = &[
     "review.newNote",
     "review.nextComment",
     "review.previousComment",
-    "review.protectSheet",
     "review.replyComment",
     "review.resolveComment",
     "review.showAllNotes",
@@ -323,7 +319,6 @@ pub const ALLOWED: &[&str] = &[
     "review.showNote",
     "review.spelling",
     "review.thesaurus",
-    "review.unprotectSheet",
     "review.workbookStatistics",
     "selection.column",
     "selection.currentRegion",
@@ -386,8 +381,11 @@ pub const ALLOWED: &[&str] = &[
     "view.zoomToSelection",
     "window.activate",
 ];
-/// Commands a locked session never runs. `review.protectWorkbook` (Protect and Unprotect Workbook)
-/// is here because a password on the structure could lock the parent's copy for everyone else.
+/// Commands a locked session never runs. The protection commands are here because a password or a
+/// lock set in the editor could lock the parent's copy for everyone else: `review.protectWorkbook`
+/// (Protect and Unprotect Workbook), `review.protectSheet` / `review.unprotectSheet` (sheet
+/// protection), `review.allowEditRanges` (the ranges left editable) and `home.lockCell` (the cell
+/// lock that sheet protection enforces). `file.properties` belongs to the Info page, which is hidden.
 pub const BLOCKED: &[&str] = &[
     "automate.allScripts",
     "automate.deleteScript",
@@ -396,7 +394,12 @@ pub const BLOCKED: &[&str] = &[
     "automate.runScript",
     "file.close",
     "file.new",
+    "file.properties",
+    "home.lockCell",
+    "review.allowEditRanges",
+    "review.protectSheet",
     "review.protectWorkbook",
+    "review.unprotectSheet",
     "view.macros",
 ];
 /// Commands that are off until the policy turns them on.

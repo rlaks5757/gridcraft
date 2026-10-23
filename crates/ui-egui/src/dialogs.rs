@@ -1561,6 +1561,10 @@ fn format_cells(app: &mut SheetApp, ui: &mut egui::Ui, d: &mut Dialog, confirm: 
             ("Fill", "Format Cells|Fill"),
             ("Protection", "Protection"),
         ] {
+            // Host lock: the cell lock belongs to sheet protection, which is not offered.
+            if tab == "Protection" && !app.allowed("home.lockCell") {
+                continue;
+            }
             if ui.selectable_label(d.tab == tab, lang.tr(key)).clicked() {
                 d.tab = tab.to_string();
             }
