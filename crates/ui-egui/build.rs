@@ -25,6 +25,46 @@ fn main() {
         println!("cargo::warning=writing {}: {e}", out.display());
     }
     embed_korean_font();
+    embed_office_fonts();
+}
+
+/// The families of the Office-compatible set a web build embeds (their licences travel with them).
+const OFFICE_FAMILIES: &[&str] = &["Carlito", "Caladea", "Liberation Sans", "Liberation Serif", "Liberation Mono"];
+
+/// With `CRAFT_FONTS_DIR`, a web (wasm32) build embeds the [`OFFICE_FAMILIES`] faces of its
+/// `fonts/manifest.txt` as `OFFICE_FONTS` (`(family, style, bytes)`): cells set in Calibri, Cambria,
+/// Arial, Times New Roman or Courier New draw with the faces the server's PDF renderer uses. Empty
+/// elsewhere. Only reads the local checkout (no network).
+fn embed_office_fonts() {
+    let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").is_ok_and(|a| a == "wasm32");
+    let mut src = String::from("pub static OFFICE_FONTS: &[(&str, &str, &[u8])] = &[\n");
+    if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").filter(|_| wasm).map(std::path::PathBuf::from) {
+        let manifest = dir.join("fonts/manifest.txt");
+        match std::fs::read_to_string(&manifest) {
+            Ok(text) => {
+                for line in text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')) {
+                    let f: Vec<&str> = line.split(" | ").map(str::trim).collect();
+                    let [family, style, file, ..] = f.as_slice() else { continue };
+                    if !OFFICE_FAMILIES.contains(family) {
+                        continue;
+                    }
+                    match dir.join(file).canonicalize() {
+                        Ok(path) => {
+                            println!("cargo::rerun-if-changed={}", path.display());
+                            let _ = writeln!(src, "    ({family:?}, {style:?}, include_bytes!({:?})),", path.display().to_string());
+                        }
+                        Err(e) => println!("cargo::warning={file}: {e}"),
+                    }
+                }
+            }
+            Err(e) => println!("cargo::warning={}: {e}", manifest.display()),
+        }
+    }
+    src.push_str("];\n");
+    let out = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("office_fonts.rs");
+    if let Err(e) = std::fs::write(&out, src) {
+        println!("cargo::warning=writing {}: {e}", out.display());
+    }
 }
 
 /// With `CRAFT_FONTS_DIR=<craft-fonts checkout>`, a web (wasm32) build embeds the first `Kore`
