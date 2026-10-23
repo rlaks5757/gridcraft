@@ -848,18 +848,20 @@ mod font_binding_tests {
         use crate::fonts::office_family;
         for name in [
             "Calibri", "calibri light", "Aptos", "Aptos Display", "Aptos Narrow", "Aptos Light", "Aptos SemiBold", "Segoe UI", "Segoe UI Light",
-            "Segoe UI Semibold", "Segoe UI Semilight", "Unknown Font", "Arial Narrow", "Arial Black", "Georgia", "Lucida Console", "",
+            "Segoe UI Semibold", "Segoe UI Semilight", "Unknown Font", "Arial Black", "Lucida Sans", "",
         ] {
             assert_eq!(office_family(name), "Carlito", "{name:?}");
         }
-        assert_eq!(office_family("Cambria"), "Caladea");
-        for name in ["Arial", "ARIAL", " Arial ", "Helvetica", "Helvetica Neue"] {
+        for name in ["Cambria", "Constantia", "Palatino", "Palatino Linotype", "Book Antiqua", "Georgia", "Garamond", "GEORGIA"] {
+            assert_eq!(office_family(name), "Caladea", "{name}");
+        }
+        for name in ["Arial", "ARIAL", " Arial ", "Arial Narrow", "Helvetica", "Helvetica Neue"] {
             assert_eq!(office_family(name), "Liberation Sans", "{name}");
         }
         for name in ["Times New Roman", "Times"] {
             assert_eq!(office_family(name), "Liberation Serif", "{name}");
         }
-        for name in ["Courier New", "Courier", "Consolas"] {
+        for name in ["Courier New", "Courier", "Consolas", "Lucida Console"] {
             assert_eq!(office_family(name), "Liberation Mono", "{name}");
         }
         assert_eq!(office_family("Inter"), "Inter");

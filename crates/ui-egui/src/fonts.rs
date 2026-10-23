@@ -313,17 +313,17 @@ pub fn office_role_key(family: &str, bold: bool, italic: bool) -> String {
 /// The embedded family a document font name is drawn with: the Office-compatible face the server's
 /// PDF renderer uses for it. The name is matched exactly and case-insensitively against one list
 /// (the same one the viewer and the render worker use): Calibri, Aptos and Segoe UI give Carlito;
-/// Cambria gives Caladea; Arial, Helvetica and Helvetica Neue give Liberation Sans; Times and Times
-/// New Roman give Liberation Serif; Courier, Courier New and Consolas give Liberation Mono; the
+/// Cambria, Constantia, Palatino (Linotype), Book Antiqua, Georgia and Garamond give Caladea; Arial, Arial Narrow, Helvetica and Helvetica Neue give Liberation Sans; Times and Times
+/// New Roman give Liberation Serif; Courier, Courier New, Consolas and Lucida Console give Liberation Mono; the
 /// Korean document names give NanumGothic; Inter gives Inter (not embedded here: the caller falls
 /// back to Carlito). Every other name gives Carlito, and Hangul in any of them falls back to
 /// NanumGothic.
 pub fn office_family(name: &str) -> &'static str {
     match name.trim().to_lowercase().as_str() {
-        "cambria" => "Caladea",
-        "arial" | "helvetica" | "helvetica neue" => "Liberation Sans",
+        "cambria" | "constantia" | "palatino" | "palatino linotype" | "book antiqua" | "georgia" | "garamond" => "Caladea",
+        "arial" | "arial narrow" | "helvetica" | "helvetica neue" => "Liberation Sans",
         "times" | "times new roman" => "Liberation Serif",
-        "courier" | "courier new" | "consolas" => "Liberation Mono",
+        "courier" | "courier new" | "consolas" | "lucida console" => "Liberation Mono",
         "inter" => "Inter",
         "맑은 고딕" | "malgun gothic" | "굴림" | "gulim" | "굴림체" | "gulimche" | "새굴림" | "new gulim" | "돋움" | "dotum" | "돋움체" | "dotumche"
         | "바탕" | "batang" | "바탕체" | "batangche" | "궁서" | "gungsuh" | "궁서체" | "gungsuhche" | "함초롬바탕" | "hcr batang" | "함초롬돋움"
