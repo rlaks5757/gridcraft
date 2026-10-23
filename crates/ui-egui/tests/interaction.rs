@@ -795,6 +795,17 @@ fn plain_open_warning_becomes_an_info_notice() {
 }
 
 #[test]
+fn several_open_warnings_read_in_the_ui_language() {
+    let warnings = json!({"warnings": ["no styles part", "links to external workbooks are not supported"]});
+    let mut h = harness(blank());
+    h.state_mut().show_open_warnings(&warnings);
+    assert_eq!(h.state().notice.clone().unwrap().text, "2 items in this file were handled differently. First: no styles part");
+    h.state_mut().ui.language = gridcraft_ui_egui::i18n::Language::Ko;
+    h.state_mut().show_open_warnings(&warnings);
+    assert_eq!(h.state().notice.clone().unwrap().text, "이 파일의 2개 항목이 다르게 처리되었습니다. 첫 번째: 서식 정보가 없어 기본 서식으로 엽니다");
+}
+
+#[test]
 fn macros_dialog_lists_vba_and_scripts() {
     let mut s = blank();
     let mut wb = gridcraft_engine::model::Workbook::new();

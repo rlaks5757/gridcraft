@@ -987,7 +987,12 @@ impl SheetApp {
             let text = if msgs.len() == 1 {
                 msgs[0].to_string()
             } else {
-                format!("{} items in this file were handled differently. First: {}", msgs.len(), msgs[0])
+                let lang = self.ui.language;
+                if lang == i18n::Language::Ko {
+                    format!("이 파일의 {}개 항목이 다르게 처리되었습니다. 첫 번째: {}", msgs.len(), lang.tr_exact(msgs[0]))
+                } else {
+                    format!("{} items in this file were handled differently. First: {}", msgs.len(), msgs[0])
+                }
             };
             self.notice = Some(Notice { text, kind: NoticeKind::Info, action: None });
         }
