@@ -28,6 +28,10 @@ pub fn start() {
         // `?host=parent`: a same-origin page framing GridCraft (such as a Nextcloud app) opens
         // workbooks in it and stores what it saves (`host`).
         let bridge = if query_param("host").as_deref() == Some("parent") { crate::host::Bridge::new() } else { None };
+        // `&jsontools=1` (only /alternate-spreadjs sets it): the frame answers `gridcraft:export` and a new workbook replaces the open ones.
+        #[cfg(feature = "ppm-host")]
+        let bridge =
+            bridge.map(|b| b.with_json_tools(crate::gate::json_tools(gridcraft_engine::hostlock::HOST_BUILD, query_param("jsontools").as_deref())));
         // The PPM build runs only inside the PPM page: opened any other way it opens nothing.
         let host_param = query_param("host");
         if crate::gate::decide(gridcraft_engine::hostlock::HOST_BUILD, host_param.as_deref(), bridge.is_some()) == crate::gate::Start::OpenFromPpm {
@@ -101,6 +105,8 @@ impl eframe::App for WebShell {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if let Some(bridge) = &self.bridge {
             bridge.apply_policy(&self.app);
+            #[cfg(feature = "ppm-host")]
+            bridge.replace_documents(&mut self.app);
         }
         let dropped = ctx.input_mut(|i| std::mem::take(&mut i.raw.dropped_files));
         // Host lock: the host sends the files; dropped ones are ignored.

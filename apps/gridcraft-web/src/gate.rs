@@ -47,6 +47,14 @@ pub fn policy_overrides(policy_json: &str) -> Vec<(String, bool)> {
     overrides.iter().filter_map(|(id, on)| Some((id.clone(), on.as_bool()?))).collect()
 }
 
+/// Do the JSON tools of `/alternate-spreadjs` (answering `gridcraft:export`, open replacing the open
+/// workbooks) run in this frame? Only in a PPM build whose page asked with `?jsontools=1`; every other
+/// frame, `/alternate-builder-excel` included, behaves as before.
+#[cfg_attr(not(feature = "ppm-host"), allow(dead_code))]
+pub fn json_tools(host_build: bool, param: Option<&str>) -> bool {
+    host_build && param == Some("1")
+}
+
 /// The longest `id` of a `gridcraft:export` request.
 pub const EXPORT_ID_MAX: usize = 128;
 
@@ -121,6 +129,14 @@ mod tests {
     fn four_thousand_overrides_are_all_taken() {
         let body: Vec<String> = (0..4000).map(|i| format!("\"cmd.{i}\": true")).collect();
         assert_eq!(policy_overrides(&format!("{{\"overrides\": {{{}}}}}", body.join(","))).len(), 4000);
+    }
+
+    #[test]
+    fn the_json_tools_need_the_ppm_build_and_the_explicit_flag() {
+        assert!(json_tools(true, Some("1")));
+        for (host_build, param) in [(true, None), (true, Some("0")), (true, Some("")), (true, Some("true")), (false, Some("1")), (false, None)] {
+            assert!(!json_tools(host_build, param), "{host_build} {param:?}");
+        }
     }
 
     #[test]

@@ -13,8 +13,10 @@
 //!   as PDF. The parent stores it and reports failures itself.
 //! - `gridcraft:dirty` (to the parent): `{ dirty }` whenever unsaved changes appear or go away.
 //! - `gridcraft:failed` (to the parent): `{ error }` when the app couldn't start.
-//! - `gridcraft:export` (from the parent, PPM build only): `{ id }`, a request for the active
-//!   workbook as GridCraft JSON, as it is now (unsaved edits included).
+//! - `gridcraft:export` (from the parent, PPM build opened with `&jsontools=1` only): `{ id }`, a
+//!   request for the active workbook as GridCraft JSON, as it is now (unsaved edits included).
+//!   Any other frame ignores it. In such a frame `gridcraft:open` also replaces the open
+//!   workbooks instead of adding a tab.
 //! - `gridcraft:exported` (to the parent): `{ id, name, bytes }` (a transferred `ArrayBuffer` of
 //!   JSON text) answering `gridcraft:export`; or `gridcraft:export-failed`: `{ id, error }`.
 //!   Neither counts as a save: the workbook stays as dirty as it was.
@@ -51,6 +53,12 @@ pub struct Bridge {
     /// Ids of `gridcraft:export` requests the next frame answers.
     #[cfg(feature = "ppm-host")]
     exports: Rc<RefCell<Vec<String>>>,
+    /// Opened with `&jsontools=1` (see [`crate::gate::json_tools`]): answers `gridcraft:export`.
+    #[cfg(feature = "ppm-host")]
+    json_tools: bool,
+    /// A `gridcraft:open` arrived in a `json_tools` frame: the next frame closes the open workbooks first.
+    #[cfg(feature = "ppm-host")]
+    replace: Rc<Cell<bool>>,
 }
 
 impl Bridge {
@@ -75,7 +83,28 @@ impl Bridge {
             policy: Rc::default(),
             #[cfg(feature = "ppm-host")]
             exports: Rc::default(),
+            #[cfg(feature = "ppm-host")]
+            json_tools: false,
+            #[cfg(feature = "ppm-host")]
+            replace: Rc::default(),
         })
+    }
+
+    /// Turns on the JSON tools of the `/alternate-spreadjs` page (export on request, open replaces).
+    #[cfg(feature = "ppm-host")]
+    pub fn with_json_tools(mut self, on: bool) -> Self {
+        self.json_tools = on;
+        self
+    }
+
+    /// Before the frame handles the files that arrived: in a `json_tools` frame a new workbook replaces the open ones.
+    #[cfg(feature = "ppm-host")]
+    pub fn replace_documents(&self, app: &mut SheetApp) {
+        if self.replace.take() {
+            while !app.session.documents().is_empty() {
+                app.session.close_document(0);
+            }
+        }
     }
 
     /// Send saved and exported files to the parent instead of downloading them, and hear files
@@ -175,6 +204,10 @@ impl Bridge {
         let policy = self.policy.clone();
         #[cfg(feature = "ppm-host")]
         let exports = self.exports.clone();
+        #[cfg(feature = "ppm-host")]
+        let json_tools = self.json_tools;
+        #[cfg(feature = "ppm-host")]
+        let replace = self.replace.clone();
         let origin = self.origin.clone();
         let on_message = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |event: web_sys::MessageEvent| {
             if event.origin() != origin || !event.source().is_some_and(|s| js_sys::Object::is(&s, &parent)) {
@@ -183,6 +216,9 @@ impl Bridge {
             let data = event.data();
             #[cfg(feature = "ppm-host")]
             if string(&data, "type").as_deref() == Some("gridcraft:export") {
+                if !json_tools {
+                    return;
+                }
                 if let Some(id) = string(&data, "id").and_then(|id| crate::gate::export_id(&id)) {
                     exports.borrow_mut().push(id);
                     ctx.request_repaint();
@@ -195,6 +231,10 @@ impl Bridge {
             let name = string(&data, "name").filter(|n| !n.trim().is_empty()).unwrap_or_else(|| "Book.xlsx".to_string());
             let Some(bytes) = bytes(&data) else { return };
             *policy.borrow_mut() = Some(policy_overrides(&data));
+            #[cfg(feature = "ppm-host")]
+            if json_tools {
+                replace.set(true);
+            }
             inbox.lock().unwrap_or_else(|e| e.into_inner()).push((name, bytes));
             ctx.request_repaint();
         });
