@@ -188,6 +188,9 @@ fn the_ribbon_and_title_bar_lose_the_blocked_entries() {
     for label in ["Protect Sheet", "Protect Workbook", "Allow Edit Ranges"] {
         assert!(h.query_by_label(label).is_none(), "{label:?} is not offered when locked");
     }
+    // Nothing of the protection group is left, so its divider isn't drawn either.
+    let any = ["review.protectSheet", "review.protectWorkbook", "review.allowEditRanges"].iter().any(|id| h.state().allowed(id));
+    assert!(!any, "the protection group is empty when locked");
 
     let hits = Arc::new(AtomicUsize::new(0));
     let mut open = harness(false, counting(&hits, &Downloads::default(), Inbox::default()));

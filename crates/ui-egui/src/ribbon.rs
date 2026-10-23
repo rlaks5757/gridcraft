@@ -2111,7 +2111,10 @@ fn review(app: &mut SheetApp, ui: &mut Ui) {
             ],
         );
     });
-    sep(ui);
+    // The divider belongs to the protection group: it goes with the group when all of it is locked.
+    if ["review.protectSheet", "review.protectWorkbook", "review.allowEditRanges"].iter().any(|id| app.allowed(id)) {
+        sep(ui);
+    }
     // Host lock: Protect/Unprotect Sheet, Protect Workbook and Allow Edit Ranges are not offered
     // (the commands are locked).
     if app.allowed("review.protectSheet") {
