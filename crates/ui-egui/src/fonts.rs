@@ -414,6 +414,11 @@ fn uploaded() -> Vec<(String, std::sync::Arc<egui::FontData>)> {
     UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).clone()
 }
 
+/// The families of the fonts the host uploaded, in the order they came.
+pub fn uploaded_families() -> Vec<String> {
+    uploaded().into_iter().map(|(family, _)| family).collect()
+}
+
 /// Is a font already added under `family`? Names compare without regard to case, as a workbook's
 /// font names do. Asked before the bytes are copied, so a repeat costs nothing.
 pub fn has_uploaded(family: &str) -> bool {
@@ -613,6 +618,7 @@ mod tests {
         assert!(add_uploaded(&family.to_uppercase(), epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok(), "case doesn't make a new family");
         assert_eq!(uploaded_generation(), before + 1, "a repeat installs nothing");
         assert!(has_uploaded("upload test FAMILY"));
+        assert!(uploaded_families().iter().any(|f| f == family), "the ribbon list can offer it");
         assert!(families().iter().any(|f| f == family), "the font list offers it");
 
         let mut fonts = egui::FontDefinitions::default();

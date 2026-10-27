@@ -1094,7 +1094,13 @@ fn font_combo(app: &mut SheetApp, ui: &mut Ui, st: &Style) {
     let resp = ui.add_sized([150.0, 24.0], egui::Button::new(egui::RichText::new(&name).font(theme::ui_font(12.5))));
     control_keytip(app, ui, &resp, "home.fontName");
     let forced = invoke(app, "home.fontName");
-    let items: Vec<(&str, String)> = FONTS.iter().map(|f| (*f, f.to_string())).collect();
+    // The standard names, then the fonts the host uploaded (the ribbon list isn't the installed-fonts list).
+    let uploaded = crate::fonts::uploaded_families();
+    let items: Vec<(&str, String)> = FONTS
+        .iter()
+        .map(|f| (*f, f.to_string()))
+        .chain(uploaded.iter().filter(|u| !FONTS.iter().any(|f| f.eq_ignore_ascii_case(u))).map(|u| (u.as_str(), u.clone())))
+        .collect();
     if let ComboResult::Picked(value) = editable_combo(ui, &resp, "font", &name, &items, forced) {
         act(app, "home.fontName", json!({"name": value}));
     }
