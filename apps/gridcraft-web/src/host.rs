@@ -29,7 +29,8 @@
 //! - `gridcraft:add-fonts` (from the parent): `{ id, fonts: [{ family, bytes, format }] }`, `format`
 //!   `ttf` or `otf`. Each font joins the font list and the drawing at once, replacing an installed
 //!   or embedded font of the same name; a family sent twice is kept once. At most
-//!   [`crate::gate::MAX_FONTS_PER_MESSAGE`] fonts of [`crate::gate::MAX_FONT_BYTES`] each count.
+//!   [`crate::gate::MAX_FONTS_PER_MESSAGE`] fonts count, each up to [`crate::gate::MAX_FONT_BYTES`], and
+//!   [`crate::gate::MAX_FONTS_TOTAL_BYTES`] together; a family already added (any case) is kept once.
 //! - `gridcraft:fonts-added` (to the parent): `{ id, installed, failed }`, the family names.
 //!
 //! Ctrl/Cmd+S inside the frame is GridCraft's Save (a `gridcraft:save`); the browser's own "save
@@ -212,7 +213,8 @@ impl Bridge {
     }
 
     /// The active workbook as .xlsx and the name Save gives it. `save` first takes in a cell still
-    /// being edited and the view (as Save does); `check` and `preview` leave the app untouched.
+    /// being edited and the view (as Save does); `check` and `preview` leave the app untouched but
+    /// still count that cell.
     fn workbook_bytes(&self, app: &mut SheetApp, purpose: &str) -> Result<(String, Vec<u8>), String> {
         if !self.opened.get() || app.session.active().is_none() {
             return Err("not-ready".into());
@@ -223,14 +225,9 @@ impl Bridge {
             }
             app.store_view_state();
         }
-        let result = app.session.run("file.saveBytes", serde_json::json!({"format": "xlsx"})).map_err(|e| e.to_string())?;
-        let bytes = result
-            .get("base64")
-            .and_then(serde_json::Value::as_str)
-            .and_then(gridcraft_engine::io::base64_decode)
-            .ok_or_else(|| "couldn't encode the workbook".to_string())?;
-        let name = result.get("name").and_then(serde_json::Value::as_str).unwrap_or("Book.xlsx").to_string();
-        Ok((name, bytes))
+        // The same encoding and name as `file.saveBytes`, without its base64 round trip. A cell
+        // still being edited is counted in (a copy takes it, the app doesn't move).
+        app.xlsx_bytes_with_pending_edit().unwrap_or_else(|| Err("not-ready".into()))
     }
 
     /// Answers the pending `gridcraft:export` requests with the active workbook as JSON.
@@ -314,7 +311,7 @@ impl Bridge {
                                 ctx.request_repaint();
                             }
                             None => {
-                                let purpose = string(&data, "purpose").unwrap_or_default();
+                                let purpose = crate::gate::echo_purpose(&string(&data, "purpose").unwrap_or_default());
                                 let fields = [
                                     ("type", "gridcraft:bytes-failed".into()),
                                     ("id", id.as_str().into()),
@@ -365,7 +362,7 @@ impl Bridge {
         // it while the canvas has the keyboard; this covers the moments it doesn't (such as just
         // after the frame loads). It only cancels the default: the key still reaches GridCraft.
         let on_key = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(|event: web_sys::KeyboardEvent| {
-            if (event.ctrl_key() || event.meta_key()) && event.key().eq_ignore_ascii_case("s") {
+            if (event.ctrl_key() || event.meta_key()) && (event.code() == "KeyS" || event.key().eq_ignore_ascii_case("s")) {
                 event.prevent_default();
             }
         });
@@ -396,24 +393,44 @@ fn add_fonts(data: &JsValue) -> (Vec<String>, Vec<String>) {
     let Some(list) = js_sys::Reflect::get(data, &JsValue::from_str("fonts")).ok().filter(js_sys::Array::is_array) else {
         return (installed, failed);
     };
+    // Bytes taken so far in this message: the whole message is capped, not only each file.
+    let mut taken = 0usize;
     for (i, item) in js_sys::Array::from(&list).iter().enumerate() {
         let family = string(&item, "family").unwrap_or_default();
-        let font = (i < crate::gate::MAX_FONTS_PER_MESSAGE)
-            .then(|| string(&item, "format").filter(|f| crate::gate::font_format_ok(f)))
-            .flatten()
-            .and_then(|_| bytes(&item))
-            .filter(|b| b.len() <= crate::gate::MAX_FONT_BYTES)
-            .map(|b| gridcraft_ui_egui::fonts::add_uploaded(&family, b));
-        match font {
-            Some(Ok(())) => installed.push(family),
-            Some(Err(e)) => {
-                log::warn!("font {family:?} refused: {e}");
-                failed.push(family);
+        if i >= crate::gate::MAX_FONTS_PER_MESSAGE || !string(&item, "format").is_some_and(|f| crate::gate::font_format_ok(&f)) {
+            failed.push(family);
+        } else if gridcraft_ui_egui::fonts::has_uploaded(&family) {
+            // Already there: nothing to copy.
+            installed.push(family);
+        } else {
+            // The size is read off the JS buffer, so a too-big font is never copied into the app.
+            let len = byte_len(&item).filter(|len| *len <= crate::gate::MAX_FONT_BYTES && taken + len <= crate::gate::MAX_FONTS_TOTAL_BYTES);
+            match len.and_then(|len| bytes(&item).map(|b| (len, b))) {
+                Some((len, b)) => match gridcraft_ui_egui::fonts::add_uploaded(&family, b) {
+                    Ok(()) => {
+                        taken += len;
+                        installed.push(family);
+                    }
+                    Err(e) => {
+                        log::warn!("font {family:?} refused: {e}");
+                        failed.push(family);
+                    }
+                },
+                None => failed.push(family),
             }
-            None => failed.push(family),
         }
     }
     (installed, failed)
+}
+
+/// The length of `bytes` (an `ArrayBuffer` or `Uint8Array`) without copying it.
+fn byte_len(data: &JsValue) -> Option<usize> {
+    let bytes = js_sys::Reflect::get(data, &JsValue::from_str("bytes")).ok()?;
+    if let Some(array) = bytes.dyn_ref::<js_sys::Uint8Array>() {
+        Some(array.length() as usize)
+    } else {
+        bytes.dyn_ref::<js_sys::ArrayBuffer>().map(|b| b.byte_length() as usize)
+    }
 }
 
 fn is_workbook(name: &str) -> bool {

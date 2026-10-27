@@ -400,7 +400,7 @@ pub fn bind_embedded(
 }
 
 /// Fonts the host sent at run time (`gridcraft:add-fonts`): family name and font file bytes.
-static UPLOADED: std::sync::Mutex<Vec<(String, std::sync::Arc<[u8]>)>> = std::sync::Mutex::new(Vec::new());
+static UPLOADED: std::sync::Mutex<Vec<(String, std::sync::Arc<egui::FontData>)>> = std::sync::Mutex::new(Vec::new());
 
 /// Bumped by every added font, so the app knows to rebuild its font set.
 static UPLOADED_GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -410,25 +410,34 @@ pub fn uploaded_generation() -> u64 {
     UPLOADED_GENERATION.load(std::sync::atomic::Ordering::Acquire)
 }
 
-fn uploaded() -> Vec<(String, std::sync::Arc<[u8]>)> {
+fn uploaded() -> Vec<(String, std::sync::Arc<egui::FontData>)> {
     UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).clone()
 }
 
+/// Is a font already added under `family`? Names compare without regard to case, as a workbook's
+/// font names do. Asked before the bytes are copied, so a repeat costs nothing.
+pub fn has_uploaded(family: &str) -> bool {
+    UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).iter().any(|(f, _)| f.eq_ignore_ascii_case(family))
+}
+
 /// Keeps the font file `bytes` (one TrueType or OpenType face) as the family `family`, for the next
-/// font set. A family already added is left alone (`Ok`, nothing changes); data egui can't read is
-/// refused, since epaint panics on it.
+/// font set. A family already added (see [`has_uploaded`]) is left alone (`Ok`, nothing changes);
+/// data egui can't read is refused, since epaint panics on it.
 pub fn add_uploaded(family: &str, bytes: Vec<u8>) -> Result<(), String> {
     if family.trim().is_empty() {
         return Err("empty family name".into());
+    }
+    if has_uploaded(family) {
+        return Ok(());
     }
     if !crate::theme::font_parses(&bytes, 0) {
         return Err("not a font file egui can read".into());
     }
     let mut all = UPLOADED.lock().unwrap_or_else(|e| e.into_inner());
-    if all.iter().any(|(f, _)| f == family) {
+    if all.iter().any(|(f, _)| f.eq_ignore_ascii_case(family)) {
         return Ok(());
     }
-    all.push((family.to_string(), bytes.into()));
+    all.push((family.to_string(), std::sync::Arc::new(egui::FontData::from_owned(bytes))));
     UPLOADED_GENERATION.fetch_add(1, std::sync::atomic::Ordering::Release);
     Ok(())
 }
@@ -440,9 +449,10 @@ pub fn add_uploaded(family: &str, bytes: Vec<u8>) -> Result<(), String> {
 /// role keys now bound.
 pub fn bind_uploaded(fonts: &mut egui::FontDefinitions, base: &[String], tail: &[String]) -> Vec<String> {
     let mut bound = Vec::new();
-    for (family, bytes) in uploaded() {
+    for (family, data) in uploaded() {
         let key = format!("upload-src:{family}");
-        fonts.font_data.insert(key.clone(), std::sync::Arc::new(egui::FontData::from_owned(bytes.to_vec())));
+        // Shared with the registry: a rebuild of the font set copies nothing.
+        fonts.font_data.insert(key.clone(), data);
         for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {
             let role = role_key(&family, bold, italic);
             let chain: Vec<String> = std::iter::once(key.clone()).chain(base.iter().cloned()).chain(tail.iter().cloned()).collect();
@@ -591,7 +601,9 @@ mod tests {
         assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
         assert_eq!(uploaded_generation(), before + 1);
         assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok(), "sent again: kept once");
+        assert!(add_uploaded(&family.to_uppercase(), epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok(), "case doesn't make a new family");
         assert_eq!(uploaded_generation(), before + 1, "a repeat installs nothing");
+        assert!(has_uploaded("upload test FAMILY"));
         assert!(families().iter().any(|f| f == family), "the font list offers it");
 
         let mut fonts = egui::FontDefinitions::default();

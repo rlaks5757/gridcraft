@@ -79,6 +79,14 @@ pub fn bytes_purpose(purpose: &str) -> Option<&'static str> {
 /// The most fonts one `gridcraft:add-fonts` takes; the rest are reported as failed.
 pub const MAX_FONTS_PER_MESSAGE: usize = 64;
 
+/// The most font bytes one `gridcraft:add-fonts` takes in all (as in WordCraft).
+pub const MAX_FONTS_TOTAL_BYTES: usize = 200 << 20;
+
+/// `purpose` cut to the longest an answer repeats, so an odd request can't make a big reply.
+pub fn echo_purpose(purpose: &str) -> String {
+    purpose.chars().take(200).collect()
+}
+
 /// The longest font file taken (bigger ones are reported as failed).
 pub const MAX_FONT_BYTES: usize = 32 << 20;
 
@@ -189,6 +197,12 @@ mod tests {
         for p in ["", "Save", "export", "save ", "check\0"] {
             assert_eq!(bytes_purpose(p), None, "{p:?}");
         }
+    }
+
+    #[test]
+    fn an_odd_purpose_is_echoed_at_200_characters_at_most() {
+        assert_eq!(echo_purpose("save"), "save");
+        assert_eq!(echo_purpose(&"가".repeat(500)).chars().count(), 200);
     }
 
     #[test]

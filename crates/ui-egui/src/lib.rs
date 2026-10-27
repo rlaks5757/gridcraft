@@ -1137,6 +1137,34 @@ impl SheetApp {
         }
     }
 
+    /// The active workbook as .xlsx bytes (the encoding `file.saveBytes` uses) and the name Save gives
+    /// it, with the cell still being edited counted in. The app itself stays as it is: the edit is
+    /// applied to a scratch copy, so the editor, the undo history and the dirty state don't move.
+    /// An edit that can't be read (a bad formula) is left out. `None` without a workbook.
+    pub fn xlsx_bytes_with_pending_edit(&self) -> Option<Result<(String, Vec<u8>), String>> {
+        let doc = self.session.active()?;
+        let mut copy = doc.clone();
+        if let Some(ed) = &self.editor {
+            let text = match &ed.completion {
+                Some(full) if full.to_lowercase().starts_with(&ed.text.to_lowercase()) => full.clone(),
+                _ => ed.text.clone(),
+            };
+            if let Ok(text) = formula_locale::canonical(&text, ed.locale, &doc.wb, ed.sheet, ed.cell) {
+                let mut scratch = gridcraft_engine::Session::new();
+                scratch.prefs = self.session.prefs.clone();
+                let active = copy.wb.active_sheet;
+                std::sync::Arc::make_mut(&mut copy.wb).active_sheet = ed.sheet;
+                scratch.add_document(copy);
+                // A refused edit leaves the copy as it was; either way the active sheet goes back.
+                let _ = scratch.run("cell.set", json!({"cell": ed.cell.a1(), "input": text}));
+                copy = scratch.active().cloned()?;
+                std::sync::Arc::make_mut(&mut copy.wb).active_sheet = active;
+            }
+        }
+        let stem = std::path::Path::new(&copy.display_title()).file_stem().and_then(|x| x.to_str()).unwrap_or("Book").to_string();
+        Some(gridcraft_engine::io::save_bytes(&copy.wb, "x.xlsx").map(|b| (format!("{stem}.xlsx"), b)).map_err(|e| e.to_string()))
+    }
+
     pub fn cancel_edit(&mut self) {
         self.editor = None;
         self.session.mode = gridcraft_engine::Mode::Ready;
@@ -1475,4 +1503,27 @@ pub fn now_ms() -> f64 {
 
 pub fn cell(r: u32, c: u32) -> CellRef {
     CellRef::new(r, c)
+}
+
+#[cfg(test)]
+mod pending_edit_tests {
+    use super::*;
+
+    #[test]
+    fn bytes_count_the_cell_being_edited_without_moving_the_app() {
+        let mut session = gridcraft_engine::Session::default();
+        session.new_workbook();
+        let mut app = SheetApp::new(session, Default::default());
+        app.begin_edit(Some("{{tag}}".into()), false);
+        let before = app.session.active().map(|d| (d.is_dirty(), d.undo.len()));
+        let (name, bytes) = app.xlsx_bytes_with_pending_edit().expect("a workbook").expect("encoded");
+        assert!(name.ends_with(".xlsx"), "{name}");
+        let (wb, _) = gridcraft_engine::io::open_bytes(&name, &bytes).expect("reads back");
+        let at = gridcraft_engine::core::CellRef::new(0, 0);
+        let text = wb.sheets[0].cell(at).map(|c| c.input_text());
+        assert_eq!(text.as_deref(), Some("{{tag}}"), "the edit is in the bytes");
+        assert!(app.editor.is_some(), "the editor is still open");
+        assert_eq!(app.session.active().map(|d| (d.is_dirty(), d.undo.len())), before, "no dirty, no undo step");
+        assert!(app.session.active().is_some_and(|d| d.wb.sheets[0].cell(at).is_none()), "the app's own workbook is untouched");
+    }
 }
