@@ -350,6 +350,8 @@ pub struct SheetApp {
     /// Set while a font-set change is pending activation: skip this frame's paint, like the
     /// startup `fonts_ready` gate (egui applies new definitions at the next pass).
     fonts_rebind: bool,
+    /// The count of host-uploaded fonts (`fonts::uploaded_generation`) the current font set holds.
+    fonts_uploaded: u64,
     /// Han face order the installed fonts were built with; a language switch rebuilds the fonts
     /// only when it changes this (see `theme::HanOrder`).
     fonts_han: Option<theme::HanOrder>,
@@ -409,6 +411,7 @@ impl SheetApp {
             fonts_bound: Vec::new(),
             fonts_seen: (0, 0),
             fonts_rebind: false,
+            fonts_uploaded: 0,
             fonts_han: None,
             effective_dark: false,
             desktop_theme: desktop_theme::DesktopTheme::default(),
@@ -1134,6 +1137,41 @@ impl SheetApp {
         }
     }
 
+    /// The active workbook as .xlsx bytes (the encoding `file.saveBytes` uses) and the name Save gives
+    /// it, with the cell still being edited counted in. The app itself stays as it is: the edit is
+    /// applied to a scratch copy, so the editor, the undo history and the dirty state don't move.
+    /// An edit that can't be read (a bad formula) is left out. `None` without a workbook.
+    pub fn xlsx_bytes_with_pending_edit(&self) -> Option<Result<(String, Vec<u8>), String>> {
+        let doc = self.session.active()?;
+        let mut copy = doc.clone();
+        if let Some(ed) = &self.editor {
+            let text = match &ed.completion {
+                Some(full) if full.to_lowercase().starts_with(&ed.text.to_lowercase()) => full.clone(),
+                _ => ed.text.clone(),
+            };
+            // As in `commit_edit`: an input a Stop validation rule refuses is not counted in.
+            let stopped = |text: &str| {
+                gridcraft_engine::cmd::data::check_validation(&doc.wb, ed.sheet, ed.cell, text)
+                    .is_some_and(|(dv, _)| dv.error_style == gridcraft_engine::model::ErrorStyle::Stop)
+            };
+            if let Ok(text) = formula_locale::canonical(&text, ed.locale, &doc.wb, ed.sheet, ed.cell)
+                && !stopped(&text)
+            {
+                let mut scratch = gridcraft_engine::Session::new();
+                scratch.prefs = self.session.prefs.clone();
+                let active = copy.wb.active_sheet;
+                std::sync::Arc::make_mut(&mut copy.wb).active_sheet = ed.sheet;
+                scratch.add_document(copy);
+                // A refused edit leaves the copy as it was; either way the active sheet goes back.
+                let _ = scratch.run("cell.set", json!({"cell": ed.cell.a1(), "input": text}));
+                copy = scratch.active().cloned()?;
+                std::sync::Arc::make_mut(&mut copy.wb).active_sheet = active;
+            }
+        }
+        let stem = std::path::Path::new(&copy.display_title()).file_stem().and_then(|x| x.to_str()).unwrap_or("Book").to_string();
+        Some(gridcraft_engine::io::save_bytes(&copy.wb, "x.xlsx").map(|b| (format!("{stem}.xlsx"), b)).map_err(|e| e.to_string()))
+    }
+
     pub fn cancel_edit(&mut self) {
         self.editor = None;
         self.session.mode = gridcraft_engine::Mode::Ready;
@@ -1187,6 +1225,7 @@ impl SheetApp {
             } else {
                 SheetApp::setup_context_for_language(ctx, self.ui.dark, self.ui.language);
                 self.fonts_set = true;
+                self.fonts_uploaded = fonts::uploaded_generation();
                 // The rebuilt set has no workbook fonts yet: bind them again once it is active.
                 self.fonts_bound.clear();
                 self.fonts_seen = (0, 0);
@@ -1196,6 +1235,12 @@ impl SheetApp {
         } else if self.fonts_rebind {
             // A font-set change made last frame is active now.
             self.fonts_rebind = false;
+        } else if self.fonts_uploaded != fonts::uploaded_generation() {
+            // The host sent fonts: build the set again with them, keeping the workbook's fonts.
+            self.fonts_uploaded = fonts::uploaded_generation();
+            ctx.set_fonts(theme::font_definitions_with(self.ui.language, &self.fonts_bound));
+            self.fonts_rebind = true;
+            ctx.request_repaint();
         } else if fonts::scan_done() {
             // Bind the workbook's installed fonts once the background scan has finished. Adding
             // fonts re-applies the font set, which egui activates at the next pass, so skip this
@@ -1465,4 +1510,46 @@ pub fn now_ms() -> f64 {
 
 pub fn cell(r: u32, c: u32) -> CellRef {
     CellRef::new(r, c)
+}
+
+#[cfg(test)]
+mod pending_edit_tests {
+    use super::*;
+
+    #[test]
+    fn bytes_count_the_cell_being_edited_without_moving_the_app() {
+        let mut session = gridcraft_engine::Session::default();
+        session.new_workbook();
+        let mut app = SheetApp::new(session, Default::default());
+        app.begin_edit(Some("{{tag}}".into()), false);
+        let before = app.session.active().map(|d| (d.is_dirty(), d.undo.len()));
+        let (name, bytes) = app.xlsx_bytes_with_pending_edit().expect("a workbook").expect("encoded");
+        assert!(name.ends_with(".xlsx"), "{name}");
+        let (wb, _) = gridcraft_engine::io::open_bytes(&name, &bytes).expect("reads back");
+        let at = gridcraft_engine::core::CellRef::new(0, 0);
+        let text = wb.sheets[0].cell(at).map(|c| c.input_text());
+        assert_eq!(text.as_deref(), Some("{{tag}}"), "the edit is in the bytes");
+        assert!(app.editor.is_some(), "the editor is still open");
+        assert_eq!(app.session.active().map(|d| (d.is_dirty(), d.undo.len())), before, "no dirty, no undo step");
+        assert!(app.session.active().is_some_and(|d| d.wb.sheets[0].cell(at).is_none()), "the app's own workbook is untouched");
+    }
+
+    #[test]
+    fn an_edit_a_stop_rule_refuses_is_left_out_of_the_bytes() {
+        let mut session = gridcraft_engine::Session::default();
+        session.new_workbook();
+        let mut app = SheetApp::new(session, Default::default());
+        app.run("data.validation", json!({"range": "A1", "type": "whole", "operator": "greater", "formula1": "5"})).unwrap();
+        let at = gridcraft_engine::core::CellRef::new(0, 0);
+        let cell_text = |app: &SheetApp| {
+            let (name, bytes) = app.xlsx_bytes_with_pending_edit().expect("a workbook").expect("encoded");
+            let (wb, _) = gridcraft_engine::io::open_bytes(&name, &bytes).expect("reads back");
+            wb.sheets[0].cell(at).map(|c| c.input_text())
+        };
+        app.begin_edit(Some("4".into()), false);
+        assert_eq!(cell_text(&app), None, "4 breaks the rule, as commit_edit would refuse it");
+        app.cancel_edit();
+        app.begin_edit(Some("6".into()), false);
+        assert_eq!(cell_text(&app).as_deref(), Some("6"), "an allowed input counts");
+    }
 }

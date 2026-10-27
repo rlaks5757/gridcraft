@@ -70,6 +70,31 @@ pub fn workbook_json(wb: &gridcraft_engine::model::Workbook) -> Result<Vec<u8>, 
     gridcraft_engine::io::save_bytes_as(wb, "workbook.json", gridcraft_engine::io::FileKind::Json).map_err(|e| e.to_string())
 }
 
+/// Why a `gridcraft:request-bytes` is asked: `save` stores the workbook (it counts as saved), `check`
+/// and `preview` only read it. Anything else is no purpose.
+pub fn bytes_purpose(purpose: &str) -> Option<&'static str> {
+    ["save", "check", "preview"].into_iter().find(|p| *p == purpose)
+}
+
+/// The most fonts one `gridcraft:add-fonts` takes; the rest are reported as failed.
+pub const MAX_FONTS_PER_MESSAGE: usize = 64;
+
+/// The most font bytes one `gridcraft:add-fonts` takes in all (as in WordCraft).
+pub const MAX_FONTS_TOTAL_BYTES: usize = 200 << 20;
+
+/// `purpose` cut to the longest an answer repeats, so an odd request can't make a big reply.
+pub fn echo_purpose(purpose: &str) -> String {
+    purpose.chars().take(200).collect()
+}
+
+/// The longest font file taken (bigger ones are reported as failed).
+pub const MAX_FONT_BYTES: usize = 32 << 20;
+
+/// Is `format` one `gridcraft:add-fonts` knows? (`ttf` and `otf`: one face per file.)
+pub fn font_format_ok(format: &str) -> bool {
+    matches!(format, "ttf" | "otf")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,6 +187,30 @@ mod tests {
             back.sheets[0].cells.get(gridcraft_engine::core::CellRef::new(0, 0)).map(|c| c.value.clone()),
             Some(gridcraft_engine::core::Value::Number(3.5))
         );
+    }
+
+    #[test]
+    fn only_save_check_and_preview_are_purposes() {
+        for p in ["save", "check", "preview"] {
+            assert_eq!(bytes_purpose(p), Some(p));
+        }
+        for p in ["", "Save", "export", "save ", "check\0"] {
+            assert_eq!(bytes_purpose(p), None, "{p:?}");
+        }
+    }
+
+    #[test]
+    fn an_odd_purpose_is_echoed_at_200_characters_at_most() {
+        assert_eq!(echo_purpose("save"), "save");
+        assert_eq!(echo_purpose(&"가".repeat(500)).chars().count(), 200);
+    }
+
+    #[test]
+    fn only_ttf_and_otf_are_font_formats() {
+        assert!(font_format_ok("ttf") && font_format_ok("otf"));
+        for f in ["", "TTF", "ttc", "woff", "woff2"] {
+            assert!(!font_format_ok(f), "{f:?}");
+        }
     }
 
     #[test]

@@ -219,8 +219,14 @@ pub fn installed_among(names: &[String]) -> Vec<String> {
 /// background scan finishes it returns just the standard names.
 pub fn families() -> Vec<String> {
     let mut out: Vec<String> = crate::ribbon::FONTS.iter().map(|s| s.to_string()).collect();
-    let Some(cat) = catalog_now() else { return out };
     let mut seen: HashSet<String> = out.iter().map(|s| s.to_lowercase()).collect();
+    // Fonts the host uploaded come right after the standard names.
+    for (family, _) in uploaded() {
+        if seen.insert(family.to_lowercase()) {
+            out.push(family);
+        }
+    }
+    let Some(cat) = catalog_now() else { return out };
     let mut installed: Vec<String> = cat.iter().map(|f| f.family.clone()).collect();
     installed.sort_by_key(|a| a.to_lowercase());
     installed.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
@@ -393,6 +399,84 @@ pub fn bind_embedded(
     bound
 }
 
+/// Fonts the host sent at run time (`gridcraft:add-fonts`): family name and font file bytes.
+static UPLOADED: std::sync::Mutex<Vec<(String, std::sync::Arc<egui::FontData>)>> = std::sync::Mutex::new(Vec::new());
+
+/// Bumped by every added font, so the app knows to rebuild its font set.
+static UPLOADED_GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// The number of fonts added so far.
+pub fn uploaded_generation() -> u64 {
+    UPLOADED_GENERATION.load(std::sync::atomic::Ordering::Acquire)
+}
+
+fn uploaded() -> Vec<(String, std::sync::Arc<egui::FontData>)> {
+    UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).clone()
+}
+
+/// The families of the fonts the host uploaded, in the order they came.
+pub fn uploaded_families() -> Vec<String> {
+    uploaded().into_iter().map(|(family, _)| family).collect()
+}
+
+/// Is a font already added under `family`? Names compare without regard to case, as a workbook's
+/// font names do. Asked before the bytes are copied, so a repeat costs nothing.
+pub fn has_uploaded(family: &str) -> bool {
+    let wanted = family.to_lowercase();
+    UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).iter().any(|(f, _)| f.to_lowercase() == wanted)
+}
+
+/// The egui family name for one role of an uploaded family: `upl:{family lowercased}:{b|n}{i|n}`.
+/// Lowercased, so a cell font that differs from the uploaded name only in case finds it (as a
+/// browser's font matching would); a prefix of its own, so no installed font's key collides.
+pub fn uploaded_role_key(family: &str, bold: bool, italic: bool) -> String {
+    format!("upl:{}:{}{}", family.to_lowercase(), if bold { 'b' } else { 'n' }, if italic { 'i' } else { 'n' })
+}
+
+/// Keeps the font file `bytes` (one TrueType or OpenType face) as the family `family`, for the next
+/// font set. A family already added (see [`has_uploaded`]) is left alone (`Ok`, nothing changes);
+/// data egui can't read is refused, since epaint panics on it.
+pub fn add_uploaded(family: &str, bytes: Vec<u8>) -> Result<(), String> {
+    if family.trim().is_empty() {
+        return Err("empty family name".into());
+    }
+    if has_uploaded(family) {
+        return Ok(());
+    }
+    if !crate::theme::font_parses(&bytes, 0) {
+        return Err("not a font file egui can read".into());
+    }
+    let mut all = UPLOADED.lock().unwrap_or_else(|e| e.into_inner());
+    let wanted = family.to_lowercase();
+    if all.iter().any(|(f, _)| f.to_lowercase() == wanted) {
+        return Ok(());
+    }
+    all.push((family.to_string(), std::sync::Arc::new(egui::FontData::from_owned(bytes))));
+    UPLOADED_GENERATION.fetch_add(1, std::sync::atomic::Ordering::Release);
+    Ok(())
+}
+
+/// Bind every uploaded family into `fonts` under [`uploaded_role_key`], so an uploaded font wins
+/// over an installed or embedded one of the same name, in any case (`cell_family` looks these keys
+/// up first). One face serves all four roles; each chain ends with
+/// `base` and `tail` (egui's defaults, the Korean face), so glyphs it lacks still draw. Returns the
+/// role keys now bound.
+pub fn bind_uploaded(fonts: &mut egui::FontDefinitions, base: &[String], tail: &[String]) -> Vec<String> {
+    let mut bound = Vec::new();
+    for (family, data) in uploaded() {
+        let key = format!("upload-src:{family}");
+        // Shared with the registry: a rebuild of the font set copies nothing.
+        fonts.font_data.insert(key.clone(), data);
+        for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {
+            let role = uploaded_role_key(&family, bold, italic);
+            let chain: Vec<String> = std::iter::once(key.clone()).chain(base.iter().cloned()).chain(tail.iter().cloned()).collect();
+            fonts.families.insert(egui::FontFamily::Name(role.clone().into()), chain);
+            bound.push(role);
+        }
+    }
+    bound
+}
+
 /// The role families currently bound to font data. `cell_family` consults this, so it never names a
 /// family egui hasn't been given.
 static BOUND: OnceLock<std::sync::RwLock<HashSet<String>>> = OnceLock::new();
@@ -517,5 +601,60 @@ mod tests {
         // A family with no faces binds nothing and never touches the map.
         assert!(bind_faces(&mut fonts, "No Such Font", &[]).is_empty());
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_uploaded_font_joins_the_list_and_the_roles_once() {
+        let _g = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let family = "Upload Test Family";
+        let before = uploaded_generation();
+        assert!(add_uploaded(family, vec![0xAB; 64]).is_err(), "garbage is refused");
+        assert!(add_uploaded("  ", epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_err(), "a name is needed");
+        assert_eq!(uploaded_generation(), before, "a refusal changes nothing");
+
+        assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
+        assert_eq!(uploaded_generation(), before + 1);
+        assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok(), "sent again: kept once");
+        assert!(add_uploaded(&family.to_uppercase(), epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok(), "case doesn't make a new family");
+        assert_eq!(uploaded_generation(), before + 1, "a repeat installs nothing");
+        assert!(has_uploaded("upload test FAMILY"));
+        assert!(uploaded_families().iter().any(|f| f == family), "the ribbon list can offer it");
+        assert!(families().iter().any(|f| f == family), "the font list offers it");
+
+        let mut fonts = egui::FontDefinitions::default();
+        let base: Vec<String> = fonts.families.get(&egui::FontFamily::Proportional).cloned().unwrap_or_default();
+        let roles = bind_uploaded(&mut fonts, &base, &[]);
+        let want: Vec<String> =
+            [(false, false), (true, false), (false, true), (true, true)].iter().map(|(b, i)| uploaded_role_key(family, *b, *i)).collect();
+        for role in &want {
+            assert!(roles.contains(role), "{role} is bound");
+            let chain = &fonts.families[&egui::FontFamily::Name(role.as_str().into())];
+            assert!(chain.iter().all(|k| fonts.font_data.contains_key(k)), "{role} has data behind every key");
+        }
+        // A cell font that differs only in case gets the same role.
+        assert_eq!(uploaded_role_key("Upload TEST family", true, false), want[1]);
+        let set = crate::theme::font_definitions_with(crate::i18n::Language::Ko, &[]);
+        assert!(set.families.contains_key(&egui::FontFamily::Name(want[0].as_str().into())));
+        assert!(is_bound(&want[0]), "cell_family may name it");
+        assert_eq!(
+            crate::theme::cell_family("UPLOAD test family", false, false),
+            egui::FontFamily::Name(want[0].as_str().into()),
+            "a cell font differing only in case finds the upload"
+        );
+        egui::Context::default().set_fonts(set);
+    }
+
+    #[test]
+    fn the_ribbon_font_list_follows_fonts_added_after_it_was_first_drawn() {
+        let _g = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let family = "Ribbon Late Family";
+        assert!(!crate::ribbon::font_names().iter().any(|f| f == family));
+        assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
+        let names = crate::ribbon::font_names();
+        assert!(names.iter().any(|f| f == family), "offered on the next draw");
+        assert!(names.iter().any(|f| f == "Calibri"), "the standard names stay");
+        assert!(add_uploaded("calibri", epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
+        let names = crate::ribbon::font_names();
+        assert_eq!(names.iter().filter(|f| f.eq_ignore_ascii_case("calibri")).count(), 1, "no second Calibri");
     }
 }
