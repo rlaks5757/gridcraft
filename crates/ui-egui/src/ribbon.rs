@@ -482,9 +482,11 @@ pub(crate) fn editable_combo(
             }
         }
         ui.separator();
-        // A solid scroll bar, always drawn: the floating one only shows while hovered, so a list
-        // cut off at 240 px looked like it ended there.
-        ui.spacing_mut().scroll = egui::style::ScrollStyle::solid();
+        // The PPM build draws a solid scroll bar, always visible: the floating one only shows while
+        // hovered, so a list cut off at 240 px looked like it ended there. Other builds keep theirs.
+        if gridcraft_engine::hostlock::HOST_BUILD {
+            ui.spacing_mut().scroll = egui::style::ScrollStyle::solid();
+        }
         egui::ScrollArea::vertical().max_height(240.0).show(ui, |ui| {
             for i in &filtered {
                 let (value, disp) = &items[*i];
