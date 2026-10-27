@@ -329,6 +329,7 @@ impl Bridge {
                 Some("gridcraft:add-fonts") => {
                     if let Some(id) = string(&data, "id").and_then(|id| crate::gate::export_id(&id)) {
                         let (installed, failed) = add_fonts(&data);
+                        log::info!("add-fonts {id}: installed {installed:?}, failed {failed:?}");
                         let to_array = |names: Vec<String>| names.iter().map(|n| JsValue::from_str(n)).collect::<js_sys::Array>();
                         let fields = [
                             ("type", "gridcraft:fonts-added".into()),

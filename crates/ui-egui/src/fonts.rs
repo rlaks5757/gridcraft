@@ -643,4 +643,18 @@ mod tests {
         );
         egui::Context::default().set_fonts(set);
     }
+
+    #[test]
+    fn the_ribbon_font_list_follows_fonts_added_after_it_was_first_drawn() {
+        let _g = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let family = "Ribbon Late Family";
+        assert!(!crate::ribbon::font_names().iter().any(|f| f == family));
+        assert!(add_uploaded(family, epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
+        let names = crate::ribbon::font_names();
+        assert!(names.iter().any(|f| f == family), "offered on the next draw");
+        assert!(names.iter().any(|f| f == "Calibri"), "the standard names stay");
+        assert!(add_uploaded("calibri", epaint_default_fonts::UBUNTU_LIGHT.to_vec()).is_ok());
+        let names = crate::ribbon::font_names();
+        assert_eq!(names.iter().filter(|f| f.eq_ignore_ascii_case("calibri")).count(), 1, "no second Calibri");
+    }
 }
