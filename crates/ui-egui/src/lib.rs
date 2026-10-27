@@ -1149,7 +1149,14 @@ impl SheetApp {
                 Some(full) if full.to_lowercase().starts_with(&ed.text.to_lowercase()) => full.clone(),
                 _ => ed.text.clone(),
             };
-            if let Ok(text) = formula_locale::canonical(&text, ed.locale, &doc.wb, ed.sheet, ed.cell) {
+            // As in `commit_edit`: an input a Stop validation rule refuses is not counted in.
+            let stopped = |text: &str| {
+                gridcraft_engine::cmd::data::check_validation(&doc.wb, ed.sheet, ed.cell, text)
+                    .is_some_and(|(dv, _)| dv.error_style == gridcraft_engine::model::ErrorStyle::Stop)
+            };
+            if let Ok(text) = formula_locale::canonical(&text, ed.locale, &doc.wb, ed.sheet, ed.cell)
+                && !stopped(&text)
+            {
                 let mut scratch = gridcraft_engine::Session::new();
                 scratch.prefs = self.session.prefs.clone();
                 let active = copy.wb.active_sheet;
@@ -1525,5 +1532,24 @@ mod pending_edit_tests {
         assert!(app.editor.is_some(), "the editor is still open");
         assert_eq!(app.session.active().map(|d| (d.is_dirty(), d.undo.len())), before, "no dirty, no undo step");
         assert!(app.session.active().is_some_and(|d| d.wb.sheets[0].cell(at).is_none()), "the app's own workbook is untouched");
+    }
+
+    #[test]
+    fn an_edit_a_stop_rule_refuses_is_left_out_of_the_bytes() {
+        let mut session = gridcraft_engine::Session::default();
+        session.new_workbook();
+        let mut app = SheetApp::new(session, Default::default());
+        app.run("data.validation", json!({"range": "A1", "type": "whole", "operator": "greater", "formula1": "5"})).unwrap();
+        let at = gridcraft_engine::core::CellRef::new(0, 0);
+        let cell_text = |app: &SheetApp| {
+            let (name, bytes) = app.xlsx_bytes_with_pending_edit().expect("a workbook").expect("encoded");
+            let (wb, _) = gridcraft_engine::io::open_bytes(&name, &bytes).expect("reads back");
+            wb.sheets[0].cell(at).map(|c| c.input_text())
+        };
+        app.begin_edit(Some("4".into()), false);
+        assert_eq!(cell_text(&app), None, "4 breaks the rule, as commit_edit would refuse it");
+        app.cancel_edit();
+        app.begin_edit(Some("6".into()), false);
+        assert_eq!(cell_text(&app).as_deref(), Some("6"), "an allowed input counts");
     }
 }

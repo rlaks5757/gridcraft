@@ -195,6 +195,11 @@ pub fn cell_family(name: &str, bold: bool, italic: bool) -> FontFamily {
 }
 
 fn resolve_cell_family(name: &str, bold: bool, italic: bool) -> FontFamily {
+    // A font the host uploaded wins, whatever the case of the name.
+    let uploaded = crate::fonts::uploaded_role_key(name, bold, italic);
+    if crate::fonts::is_bound(&uploaded) {
+        return FontFamily::Name(uploaded.into());
+    }
     let role = crate::fonts::role_key(name, bold, italic);
     if crate::fonts::is_bound(&role) {
         return FontFamily::Name(role.into());

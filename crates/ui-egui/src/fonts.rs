@@ -417,7 +417,15 @@ fn uploaded() -> Vec<(String, std::sync::Arc<egui::FontData>)> {
 /// Is a font already added under `family`? Names compare without regard to case, as a workbook's
 /// font names do. Asked before the bytes are copied, so a repeat costs nothing.
 pub fn has_uploaded(family: &str) -> bool {
-    UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).iter().any(|(f, _)| f.eq_ignore_ascii_case(family))
+    let wanted = family.to_lowercase();
+    UPLOADED.lock().unwrap_or_else(|e| e.into_inner()).iter().any(|(f, _)| f.to_lowercase() == wanted)
+}
+
+/// The egui family name for one role of an uploaded family: `upl:{family lowercased}:{b|n}{i|n}`.
+/// Lowercased, so a cell font that differs from the uploaded name only in case finds it (as a
+/// browser's font matching would); a prefix of its own, so no installed font's key collides.
+pub fn uploaded_role_key(family: &str, bold: bool, italic: bool) -> String {
+    format!("upl:{}:{}{}", family.to_lowercase(), if bold { 'b' } else { 'n' }, if italic { 'i' } else { 'n' })
 }
 
 /// Keeps the font file `bytes` (one TrueType or OpenType face) as the family `family`, for the next
@@ -434,7 +442,8 @@ pub fn add_uploaded(family: &str, bytes: Vec<u8>) -> Result<(), String> {
         return Err("not a font file egui can read".into());
     }
     let mut all = UPLOADED.lock().unwrap_or_else(|e| e.into_inner());
-    if all.iter().any(|(f, _)| f.eq_ignore_ascii_case(family)) {
+    let wanted = family.to_lowercase();
+    if all.iter().any(|(f, _)| f.to_lowercase() == wanted) {
         return Ok(());
     }
     all.push((family.to_string(), std::sync::Arc::new(egui::FontData::from_owned(bytes))));
@@ -442,9 +451,9 @@ pub fn add_uploaded(family: &str, bytes: Vec<u8>) -> Result<(), String> {
     Ok(())
 }
 
-/// Bind every uploaded family into `fonts` under the same role keys installed families use
-/// ([`role_key`]), so an uploaded font wins over an installed or embedded one of the same name
-/// (`cell_family` looks these keys up first). One face serves all four roles; each chain ends with
+/// Bind every uploaded family into `fonts` under [`uploaded_role_key`], so an uploaded font wins
+/// over an installed or embedded one of the same name, in any case (`cell_family` looks these keys
+/// up first). One face serves all four roles; each chain ends with
 /// `base` and `tail` (egui's defaults, the Korean face), so glyphs it lacks still draw. Returns the
 /// role keys now bound.
 pub fn bind_uploaded(fonts: &mut egui::FontDefinitions, base: &[String], tail: &[String]) -> Vec<String> {
@@ -454,7 +463,7 @@ pub fn bind_uploaded(fonts: &mut egui::FontDefinitions, base: &[String], tail: &
         // Shared with the registry: a rebuild of the font set copies nothing.
         fonts.font_data.insert(key.clone(), data);
         for (bold, italic) in [(false, false), (true, false), (false, true), (true, true)] {
-            let role = role_key(&family, bold, italic);
+            let role = uploaded_role_key(&family, bold, italic);
             let chain: Vec<String> = std::iter::once(key.clone()).chain(base.iter().cloned()).chain(tail.iter().cloned()).collect();
             fonts.families.insert(egui::FontFamily::Name(role.clone().into()), chain);
             bound.push(role);
@@ -609,16 +618,23 @@ mod tests {
         let mut fonts = egui::FontDefinitions::default();
         let base: Vec<String> = fonts.families.get(&egui::FontFamily::Proportional).cloned().unwrap_or_default();
         let roles = bind_uploaded(&mut fonts, &base, &[]);
-        let want: Vec<String> = [(false, false), (true, false), (false, true), (true, true)].iter().map(|(b, i)| role_key(family, *b, *i)).collect();
+        let want: Vec<String> =
+            [(false, false), (true, false), (false, true), (true, true)].iter().map(|(b, i)| uploaded_role_key(family, *b, *i)).collect();
         for role in &want {
             assert!(roles.contains(role), "{role} is bound");
             let chain = &fonts.families[&egui::FontFamily::Name(role.as_str().into())];
             assert!(chain.iter().all(|k| fonts.font_data.contains_key(k)), "{role} has data behind every key");
         }
-        // The same role keys an installed family gets, so the upload replaces an installed font.
+        // A cell font that differs only in case gets the same role.
+        assert_eq!(uploaded_role_key("Upload TEST family", true, false), want[1]);
         let set = crate::theme::font_definitions_with(crate::i18n::Language::Ko, &[]);
         assert!(set.families.contains_key(&egui::FontFamily::Name(want[0].as_str().into())));
         assert!(is_bound(&want[0]), "cell_family may name it");
+        assert_eq!(
+            crate::theme::cell_family("UPLOAD test family", false, false),
+            egui::FontFamily::Name(want[0].as_str().into()),
+            "a cell font differing only in case finds the upload"
+        );
         egui::Context::default().set_fonts(set);
     }
 }
