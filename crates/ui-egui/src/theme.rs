@@ -458,6 +458,8 @@ pub fn font_definitions_with(language: crate::i18n::Language, used: &[String]) -
         bound.extend(crate::fonts::bind_family(&mut fonts, &family));
     }
     bound.extend(bind_office(&mut fonts, &base_prop, &base_mono, &fallback));
+    // Fonts the host uploaded come last, so they replace an installed font of the same name.
+    bound.extend(crate::fonts::bind_uploaded(&mut fonts, &base_prop, &fallback));
     // Interface text (formula bar, name box, dialogs) falls back to the cell font before the
     // script faces: whatever a cell can draw, the formula bar can draw too, even where no script
     // fallback face was found (#349: macOS UI font without Hebrew, cells in Arial with it).

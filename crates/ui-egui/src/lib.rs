@@ -350,6 +350,8 @@ pub struct SheetApp {
     /// Set while a font-set change is pending activation: skip this frame's paint, like the
     /// startup `fonts_ready` gate (egui applies new definitions at the next pass).
     fonts_rebind: bool,
+    /// The count of host-uploaded fonts (`fonts::uploaded_generation`) the current font set holds.
+    fonts_uploaded: u64,
     /// Han face order the installed fonts were built with; a language switch rebuilds the fonts
     /// only when it changes this (see `theme::HanOrder`).
     fonts_han: Option<theme::HanOrder>,
@@ -409,6 +411,7 @@ impl SheetApp {
             fonts_bound: Vec::new(),
             fonts_seen: (0, 0),
             fonts_rebind: false,
+            fonts_uploaded: 0,
             fonts_han: None,
             effective_dark: false,
             desktop_theme: desktop_theme::DesktopTheme::default(),
@@ -1187,6 +1190,7 @@ impl SheetApp {
             } else {
                 SheetApp::setup_context_for_language(ctx, self.ui.dark, self.ui.language);
                 self.fonts_set = true;
+                self.fonts_uploaded = fonts::uploaded_generation();
                 // The rebuilt set has no workbook fonts yet: bind them again once it is active.
                 self.fonts_bound.clear();
                 self.fonts_seen = (0, 0);
@@ -1196,6 +1200,12 @@ impl SheetApp {
         } else if self.fonts_rebind {
             // A font-set change made last frame is active now.
             self.fonts_rebind = false;
+        } else if self.fonts_uploaded != fonts::uploaded_generation() {
+            // The host sent fonts: build the set again with them, keeping the workbook's fonts.
+            self.fonts_uploaded = fonts::uploaded_generation();
+            ctx.set_fonts(theme::font_definitions_with(self.ui.language, &self.fonts_bound));
+            self.fonts_rebind = true;
+            ctx.request_repaint();
         } else if fonts::scan_done() {
             // Bind the workbook's installed fonts once the background scan has finished. Adding
             // fonts re-applies the font set, which egui activates at the next pass, so skip this
